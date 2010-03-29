@@ -1,0 +1,41 @@
+version 11
+
+class game {
+  double handle
+}
+program .load
+  args f
+  plugin call gambit, load "`f'"
+  display "Handle value set to " _newhandle
+  .handle = _newhandle
+end
+program .create
+  plugin call gambit, create `0'
+  .handle = _newhandle
+  class exit 0
+end
+program .players
+  plugin call gambit, players `.handle'
+  display "Number of players " _countplayers
+  class exit _countplayers
+end
+program .getpayoff
+  plugin call gambit, getpayoff `.handle' `0'
+  class exit _payoff
+end
+program .setpayoff
+  plugin call gambit, setpayoff `.handle' `0'
+  class exit 0
+end
+program .qre
+  plugin call gambit, qre `.handle' `0'
+  di _lambda
+  .p = .mixed.new
+  .p.lambda = _lambda
+  .p.logL = _logL
+  class exit .p
+end
+program .macroexpand
+  local tosub: display `.handle'
+  class exit "`tosub'"
+end
