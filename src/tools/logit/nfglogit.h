@@ -60,11 +60,12 @@ protected:
   // Compute the Jacobian matrix at the specified point.
   virtual void GetJacobian(const Vector<double> &p_point, Matrix<double> &p_matrix);
 
-private:
   void PrintProfile(std::ostream &, const Vector<double> &, bool);
 
   // Used in maximum likelihood estimation
   double LogLike(const Array<double> &p_point);
+
+private:
 
   MixedStrategyProfile<double> m_start;
   bool m_fullGraph;

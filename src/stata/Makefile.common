@@ -1,0 +1,61 @@
+#
+# This file is part of Gambit
+# Copyright (c) 1994-2010, The Gambit Project (http:#www.gambit-project.org)
+#
+# FILE: Makefile.common
+# Platform-independent portion of STATA plugin makefile
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#
+
+libgambit_SOURCES = \
+	../libgambit/integer.cc \
+	../libgambit/rational.cc \
+	../libgambit/vector.cc \
+	../libgambit/pvector.cc \
+	../libgambit/dvector.cc \
+	../libgambit/matrix.cc \
+	../libgambit/sqmatrix.cc \
+	../libgambit/game.cc \
+	../libgambit/behav.cc \
+	../libgambit/behavitr.cc \
+	../libgambit/behavspt.cc \
+	../libgambit/mixed.cc \
+	../libgambit/stratitr.cc \
+	../libgambit/stratspt.cc \
+	../libgambit/subgame.cc \
+	../libgambit/file.cc \
+	../tools/logit/nfglogit.cc \
+	../tools/logit/path.cc
+
+libgambit_OBJECTS = ${libgambit_SOURCES:.cc=.o} gambit.o
+
+${libgambit_OBJECTS}: %.o: %.cc
+	${CXX} -c ${CXXFLAGS} $< -o $@
+
+clean:
+	rm -f ${libgambit_OBJECTS} ${PLUGIN_OBJECTS}
+
+PLUGIN_SOURCES = stplugin.c 
+PLUGIN_OBJECTS = ${PLUGIN_SOURCES:.c=.o}
+
+${PLUGIN_OBJECTS}: %.o: %.c
+	${CC} -c ${CFLAGS} $< -o $@
+
+ALL_OBJECTS = ${PLUGIN_OBJECTS} ${libgambit_OBJECTS}
+
+plugin:	${ALL_OBJECTS}
+	${CXX} ${CXXFLAGS} ${ALL_OBJECTS} -o gambit.plugin
+	

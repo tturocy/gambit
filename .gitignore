@@ -17,6 +17,8 @@ gambit
 game.wrap.cpp
 _build
 .DS_Store
+<<<<<<< HEAD
 .dirstamp
 *~
-
+*.plugin
+*.dta
