@@ -3,12 +3,12 @@ version 11
 class mixed {
   double lambda
   double logL
-  array p
+  array probs
 }
 program .new
   .lambda = 0.0
   .logL = 0.0
-  .p = { 1, 3, 5 }
+  .probs = { }
 end
 program .get
   class exit 0

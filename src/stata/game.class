@@ -16,8 +16,11 @@ program .create
 end
 program .players
   plugin call gambit, players `.handle'
-  display "Number of players " _countplayers
   class exit _countplayers
+end
+program .strategies
+  plugin call gambit, strategies `.handle' `0'
+  class exit _countstrategies
 end
 program .getpayoff
   plugin call gambit, getpayoff `.handle' `0'
@@ -33,6 +36,12 @@ program .qre
   .p = .mixed.new
   .p.lambda = _lambda
   .p.logL = _logL
+  forvalues pl=1(1)`.players'  {  
+    .p.probs[`pl'] = { }
+    forvalues st=1(1)`.strategies `pl'' {
+       .p.probs[`pl'][`st'] = _prob_`pl'_`st'
+    }
+  }
   class exit .p
 end
 program .macroexpand
