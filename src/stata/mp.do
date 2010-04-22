@@ -9,7 +9,6 @@ capture drop pay_*
 
 capture program drop gambit
 program gambit, plugin
-set obs 1
 
 generate pay_r1c1_1=200 
 generate pay_r1c1_2=160
@@ -54,7 +53,11 @@ forvalues r=-0.1(0.01)0.95 {
  
   .mp = .g.qre .47 .53 .65 .35
   di "r:`r' lambda:`.mp.lambda' logL:`.mp.logL'"
-
+  di "`.mp.probs[1][1]'"
+  di "`.mp.probs[1][2]'"
+  di "`.mp.probs[2][1]'"
+  di "`.mp.probs[2][2]'"
+  
   * save the results
   file write results (`r') " " (`.mp.lambda') " " (`.mp.logL') _n
   classutil drop .mp
