@@ -241,8 +241,14 @@ EXTRA_DIST = \
 	contrib/games/wink3.nfg \
 	contrib/games/winkels.nfg \
 	contrib/games/yamamoto.nfg \
-	contrib/games/zero.nfg
-
+	contrib/games/zero.nfg \
+	src/stata/Makefile.common \
+	src/stata/Makefile.mingw \
+	src/stata/Makefile.osx \
+	src/stata/README.txt \
+	src/stata/gambit.cc \
+	src/stata/stplugin.c \
+	src/stata/stplugin.h
 
 
 # lib_LTLIBRARIES = libgambit.la
@@ -554,10 +560,10 @@ gambit_logit_SOURCES = \
 	src/tools/logit/logbehav.imp \
 	src/tools/logit/path.cc \
 	src/tools/logit/path.h \
-	src/tools/logit/efglogit.h \
 	src/tools/logit/efglogit.cc \
-	src/tools/logit/nfglogit.h \
+	src/tools/logit/efglogit.h \
 	src/tools/logit/nfglogit.cc \
+	src/tools/logit/nfglogit.h \
 	src/tools/logit/logit.cc
 
 gambit_nfg_logitdyn_SOURCES = \
