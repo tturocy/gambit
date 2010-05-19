@@ -1,37 +1,37 @@
-version 10.1
+version 11
 
 class game {
   double handle
 }
 program .load
   args f
-  plugin call gambit, load "`f'"
+  plugin call $gambit, load "`f'"
   display "Handle value set to " _newhandle
   .handle = _newhandle
 end
 program .create
-  plugin call gambit, create `0'
+  plugin call $gambit, create `0'
   .handle = _newhandle
   class exit 0
 end
 program .players
-  plugin call gambit, players `.handle'
+  plugin call $gambit, players `.handle'
   class exit _countplayers
 end
 program .strategies
-  plugin call gambit, strategies `.handle' `0'
+  plugin call $gambit, strategies `.handle' `0'
   class exit _countstrategies
 end
 program .getpayoff
-  plugin call gambit, getpayoff `.handle' `0'
+  plugin call $gambit, getpayoff `.handle' `0'
   class exit _payoff
 end
 program .setpayoff
-  plugin call gambit, setpayoff `.handle' `0'
+  plugin call $gambit, setpayoff `.handle' `0'
   class exit 0
 end
 program .qre
-  plugin call gambit, qre `.handle' `0'
+  plugin call $gambit, qre `.handle' `0'
   di _lambda
   .p = .mixed.new
   .p.lambda = _lambda
