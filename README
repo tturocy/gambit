@@ -1,7 +1,7 @@
 
 This is the README file for Gambit, software tools for game theory.
 
-The branch "with_homhp2001" contains an implementation of the
+This version contains an implementation of the
 homotopy solver by Herings/Peters (2001)
 
 The latest information on Gambit can be obtained from the
