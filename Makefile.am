@@ -344,7 +344,8 @@ bin_PROGRAMS += \
 	gambit-logit \
 	gambit-nfg-logitdyn \
 	gambit-lp \
-	gambit-simpdiv
+	gambit-simpdiv \
+	gambit-homhp2001
 
 if WITH_GUI
 bin_PROGRAMS += gambit
@@ -604,6 +605,37 @@ gambit_simpdiv_SOURCES = \
 	${libgambit_la_SOURCES} \
 	src/tools/simpdiv/nfgsimpdiv.cc
 
+gambit_homhp2001_SOURCES = \
+	${libgambit_la_SOURCES} \
+	src/tools/homhp2001/fixpdf.c \
+	src/tools/homhp2001/helper_in_use_exception.h \
+	src/tools/homhp2001/homhp2001_nfg_module_impl.cc \
+	src/tools/homhp2001/homhp2001_nfg_module_impl.h \
+	src/tools/homhp2001/homhp2001_nfg_module.h \
+	src/tools/homhp2001/homhp2001_nfg_solver_env.h \
+	src/tools/homhp2001/homhp2001_nfg_solver_impl.cc \
+	src/tools/homhp2001/homhp2001_nfg_solver_impl.h \
+	src/tools/homhp2001/homhp2001_nfg_solver.h \
+	src/tools/homhp2001/homhp2001_rho.cc \
+	src/tools/homhp2001/homhp2001_rho.h \
+	src/tools/homhp2001/homhp2001_wiring.cc \
+	src/tools/homhp2001/homhp2001.cc \
+	src/tools/homhp2001/homotopy_solver.cc \
+	src/tools/homhp2001/homotopy_solver.h \
+	src/tools/homhp2001/obj_needing_helper.h \
+	src/tools/homhp2001/prior_game_helper_tool.cc \
+	src/tools/homhp2001/prior_game_helper_tool.h \
+	src/tools/homhp2001/prior_game.cc \
+	src/tools/homhp2001/prior_game.h \
+	src/tools/homhp2001/strategy_support_const_extension.h \
+	src/tools/homhp2001/strategy_support_with_consec_nums.cc \
+	src/tools/homhp2001/strategy_support_with_consec_nums.h
+
+gambit_homhp2001_LDFLAGS = \
+	 -u MAIN__
+
+gambit_homhp2001_LDADD = \
+	-lf2c
 
 gambit_SOURCES = \
 	${libgambit_la_SOURCES} \
