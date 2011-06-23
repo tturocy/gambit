@@ -16,15 +16,15 @@ using std::tr1::shared_ptr;
 PriorGame::~PriorGame () {
 }
 
-shared_ptr<typename PriorGame::Helper>
+shared_ptr<PriorGame::Helper>
 PriorGame::createHelper (shared_ptr<const StrategySupportWithConsecNums> suppWcn) {
 	shared_ptr<PriorGameHelperTool> t (new PriorGameHelperTool (suppWcn));
-	shared_ptr<typename PriorGame::Helper> p =
+	shared_ptr<PriorGame::Helper> p =
 			ObjNeedingHelper<PriorGameHelperTool>::createHelper (t);
 	return p;
 }
 
-shared_ptr<typename PriorGame::Helper>
+shared_ptr<PriorGame::Helper>
 PriorGame::createHelper (shared_ptr<const Gambit::StrategySupport> theSupport) {
 	shared_ptr<const StrategySupportWithConsecNums> suppWcn (new StrategySupportWithConsecNums (theSupport));
 	return PriorGame::createHelper (suppWcn);
@@ -43,7 +43,7 @@ determineBest (int firstsn, int lastsn, const Gambit::Array<double> & eu) {
 	return best;
 }
 
-PriorGame::PriorGame (shared_ptr<typename PriorGame::Helper> theHelper,
+PriorGame::PriorGame (shared_ptr<PriorGame::Helper> theHelper,
 		shared_ptr<const Gambit::MixedStrategyProfile<double> > thePrior)
 : ObjNeedingHelper<PriorGameHelperTool> (theHelper), prior (thePrior)
 {
