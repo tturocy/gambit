@@ -631,9 +631,6 @@ gambit_homhp2001_SOURCES = \
 	src/tools/homhp2001/strategy_support_with_consec_nums.cc \
 	src/tools/homhp2001/strategy_support_with_consec_nums.h
 
-gambit_homhp2001_LDFLAGS = \
-	 -u MAIN__
-
 gambit_homhp2001_LDADD = \
 	-lf2c
 
