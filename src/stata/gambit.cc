@@ -19,6 +19,16 @@ private:
   std::string m_what;
 };
 
+class STATAError : public std::exception {
+public:
+  STATAError(const std::string &s) : m_what(s) { }
+  virtual ~STATAError() throw() { }
+  const char *what() const throw() { return m_what.c_str(); }
+
+private:
+  std::string m_what;
+};
+
 // Convert a string to integer, raising a ValueError exception if the
 // string does not contain a valid integer representation
 int gambit_atoi(const char *s)
@@ -86,10 +96,16 @@ void stata_error(const char *format, ...)
   va_end(args);
 }
 
-// Wrapper for SF_scal_save() for const-correctness
-inline ST_retcode stata_scal_save(const char *scal, double v)
+// Wrapper for SF_scal_save() to convert return code errors into exceptions
+inline void stata_scal_save(const char *scal, double v)
 {
-  return SF_scal_save(const_cast<char *>(scal), v);
+  int ret = 0;
+  ret = SF_scal_save(const_cast<char *>(scal), v);
+  if (ret != 0)  {
+    throw STATAError(std::string("failed to save value in scalar '") +
+		     std::string(scal) + 
+		     std::string("'"));
+  }
 }
 
 #include "../tools/logit/nfglogit.h"
@@ -161,12 +177,14 @@ ST_retcode compute_qre(Gambit::List<Gambit::Game> &handles, int argc, char *argv
 
   stata_scal_save("_lambda", tracer.GetMLELambda());
   stata_scal_save("_logL", tracer.GetMLELogLike());
+ 
   for (int pl = 1; pl <= game->NumPlayers(); pl++) {
     GamePlayer player = game->GetPlayer(pl);
     for (int st = 1; st <= player->NumStrategies(); st++) {
       std::ostringstream os;
       os << "_prob_" << pl << "_" << st;
-      stata_scal_save(os.str().c_str(), tracer.GetMLEProfile()[player->GetStrategy(st)]);
+      stata_scal_save(os.str().c_str(),
+		      tracer.GetMLEProfile()[player->GetStrategy(st)]);
     }
   }
 
@@ -413,60 +431,70 @@ STDLL stata_call(int argc, char *argv[])
     return ((ST_retcode) 198);
   }
 
-  if (!strcmp(argv[0], "load")) {
-    if (argc == 1) {
-      stata_error("load command requires path to game file\n");
+  try {
+    if (!strcmp(argv[0], "load")) {
+      if (argc == 1) {
+	stata_error("load command requires path to game file\n");
+	return ((ST_retcode) 198);
+      }
+      return load_game(handles, argv[1]);
+    }
+    else if (!strcmp(argv[0], "create")) {
+      if (argc == 1) {
+	stata_error("create command requires arguments\n");
+	return ((ST_retcode) 198);
+      }
+      return create_game(handles, argc, argv);
+    }
+    else if (!strcmp(argv[0], "list")) {
+      return list_games(handles);
+    }
+    else if (!strcmp(argv[0], "players")) {
+      if (argc == 1) {
+	stata_error("players command requires handle argument\n");
+	return ((ST_retcode) 198);
+      }
+      return count_players(handles[atoi(argv[1])]);
+    }
+    else if (!strcmp(argv[0], "strategies")) {
+      if (argc == 1) {
+	stata_error("strategies command requires handle argument\n");
+	return ((ST_retcode) 198);
+      }
+      return count_strategies(handles, argc, argv);
+    }
+    else if (!strcmp(argv[0], "qre")) {
+      if (argc == 1) {
+	stata_error("qre command requires handle argument\n");
+	return ((ST_retcode) 198);
+      }
+      return compute_qre(handles, argc, argv);
+    }    
+    else if (!strcmp(argv[0], "getpayoff")) {
+      if (argc == 1) {
+	stata_error("getpayoff command requires handle argument\n");
+	return ((ST_retcode) 198);
+      }
+      return get_payoff(handles, argc, argv);
+    }
+    else if (!strcmp(argv[0], "setpayoff")) {
+      if (argc == 1) {
+	stata_error("setpayoff command requires handle argument\n");
+	return ((ST_retcode) 198);
+      }
+      return set_payoff(handles, argc, argv);
+    }
+    else {
+      stata_error("unknown option specified\n");
       return ((ST_retcode) 198);
     }
-    return load_game(handles, argv[1]);
   }
-  else if (!strcmp(argv[0], "create")) {
-    if (argc == 1) {
-      stata_error("create command requires arguments\n");
-      return ((ST_retcode) 198);
-    }
-    return create_game(handles, argc, argv);
+  catch (std::exception e) {
+    stata_error("uncaught exception in Gambit plugin: %s\n", e.what());
+    return ((ST_retcode) 198);
   }
-  else if (!strcmp(argv[0], "list")) {
-    return list_games(handles);
-  }
-  else if (!strcmp(argv[0], "players")) {
-    if (argc == 1) {
-      stata_error("players command requires handle argument\n");
-      return ((ST_retcode) 198);
-    }
-    return count_players(handles[atoi(argv[1])]);
-  }
-  else if (!strcmp(argv[0], "strategies")) {
-    if (argc == 1) {
-      stata_error("strategies command requires handle argument\n");
-      return ((ST_retcode) 198);
-    }
-    return count_strategies(handles, argc, argv);
-  }
-  else if (!strcmp(argv[0], "qre")) {
-    if (argc == 1) {
-      stata_error("qre command requires handle argument\n");
-      return ((ST_retcode) 198);
-    }
-    return compute_qre(handles, argc, argv);
-  }    
-  else if (!strcmp(argv[0], "getpayoff")) {
-    if (argc == 1) {
-      stata_error("getpayoff command requires handle argument\n");
-      return ((ST_retcode) 198);
-    }
-    return get_payoff(handles, argc, argv);
-  }
-  else if (!strcmp(argv[0], "setpayoff")) {
-    if (argc == 1) {
-      stata_error("setpayoff command requires handle argument\n");
-      return ((ST_retcode) 198);
-    }
-    return set_payoff(handles, argc, argv);
-  }
-  else {
-    stata_error("unknown option specified\n");
+  catch (...) {
+    stata_error("uncaught exception in Gambit plugin\n");
     return ((ST_retcode) 198);
   }
 
