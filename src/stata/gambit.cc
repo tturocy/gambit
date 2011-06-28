@@ -489,7 +489,7 @@ STDLL stata_call(int argc, char *argv[])
       return ((ST_retcode) 198);
     }
   }
-  catch (std::exception e) {
+  catch (std::exception &e) {
     stata_error("uncaught exception in Gambit plugin: %s\n", e.what());
     return ((ST_retcode) 198);
   }
