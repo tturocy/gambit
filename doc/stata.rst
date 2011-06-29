@@ -75,6 +75,31 @@ his fourth, use::
 
    .g.setpayoff 2 0.5 5 1 4
 
+Example: Creating a prisoner's dilemma game
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As an example, consider creating a standard prisoner's dilemma game. 
+There are two players, each with two strategies, ``cooperate`` and
+``defect``.  Suppose if both cooperate, both receive a payoff of 8;
+if one cooperates and the other defects, the defector receives a payoff
+of 10 and the cooperator a payoff of 2; and if both defect, both receive
+a payoff of 4.
+
+Let ``cooperate`` be strategy 1 and ``defect`` be strategy 2.
+A sequence that creates this game can be written::
+
+   .g = .game.new
+   .g.create 2 2
+   .g.setpayoff 1 8 1 1
+   .g.setpayoff 2 8 1 1
+   .g.setpayoff 1 2 1 2
+   .g.setpayoff 2 10 1 2
+   .g.setpayoff 1 10 2 1
+   .g.setpayoff 2 2 2 1
+   .g.setpayoff 1 4 2 2
+   .g.setpayoff 2 4 2 2
+
+
 
 Low-level interface: gambit.plugin
 ----------------------------------
