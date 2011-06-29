@@ -51,6 +51,7 @@ Table of Contents
    samples
    ideas
    build
+   stata
    formats
    biblio
    

@@ -632,6 +632,8 @@ Example invocation::
    NE,1,0,0,1,0
 
 
+.. _gambit-logit:
+
 :program:`gambit-logit`: Compute quantal response equilbria
 -----------------------------------------------------------
 
