@@ -45,6 +45,22 @@ the file ``mygame.nfg``::
    .g.load mygame.nfg
 
 
+Dimensions of a game
+~~~~~~~~~~~~~~~~~~~~
+
+The number of players in a game is returned by the member program
+``.players``, which takes no parameters::
+
+   .g.players
+
+The number of strategies available to a player is returned by the member
+program ``.strategies``, which takes one parameter, the index of the
+player. For the number of strategies available to player 2, use::
+
+   .g.strategies 2
+
+
+
 Manipulating payoffs
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -145,7 +161,8 @@ method ``load``::
 
    plugin call gambit, load mygame.nfg
 
-Each of these calls returns the integer handle assigned to the game.  This
+Each of these calls returns the integer handle assigned to the game
+in the local macro ``_handle``.  This
 handle is used in all calls to access or manipulate the game.  The list of
 games currently defined is displayed by a call to the method ``list``::
 
@@ -154,11 +171,52 @@ games currently defined is displayed by a call to the method ``list``::
 The handle to a game appears as the first argument to all other calls to the
 plugin.
 
+The prisoner's dilemma game from the previous section could be constructed
+directly using the low-level interface via the sequence of calls::
 
+   plugin call gambit, create 2 2
+   * Game handle is stored in _newhandle; use to reference game
+   plugin call gambit, setpayoff `_newhandle' 1 8 1 1
+   plugin call gambit, setpayoff `_newhandle' 2 8 1 1
+   plugin call gambit, setpayoff `_newhandle' 1 2 1 2
+   plugin call gambit, setpayoff `_newhandle' 2 10 1 2
+   plugin call gambit, setpayoff `_newhandle' 1 10 2 1
+   plugin call gambit, setpayoff `_newhandle' 2 2 2 1
+   plugin call gambit, setpayoff `_newhandle' 1 4 2 2
+   plugin call gambit, setpayoff `_newhandle' 2 4 2 2
 
+API methods which return values use local macros for the returned
+quantities.  These include:
 
+``getpayoff``
 
+   Returns the payoff to a player from a given combination of strategies.
+   For the game with handle 1, to get the payoff to player 2 if player 1 chooses
+   his fifth strategy, player 2 chooses his first, and player 3 chooses his
+   fourth, use::
 
+      plugin call gambit, getpayoff 1 2 5 1 4
 
- 
+   ``getpayoff`` returns the payoff in the local macro ``_payoff``.
+
+``players``
+
+   Returns the number of players in a game.  For the game with handle 1,
+   use::
+
+      plugin call gambit, players 1
+
+   ``players`` returns the number of players in the local macro ``_countplayers``.
+
+``strategies``
+
+   Returns the number of strategies available to a player in a game.
+   For the game with handle 1, to get the number of strategies available to
+   player 3, use::
+
+      plugin call gambit, strategies 1 3
+
+   ``strategies`` returns the number of strategies in the local macro
+   ``_countstrategies``.
+
 
