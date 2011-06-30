@@ -241,7 +241,6 @@ ST_retcode compute_qre_eval(const Gambit::Game &game, int argc, char *argv[])
     stata_error("qre_eval requires target lambda parameter.\n");
     return (ST_retcode) 198;
   }
-  stata_display("number of arguments: %d\n", argc);
   try {
     targetLambda = gambit_atof(argv[2]);
   }
