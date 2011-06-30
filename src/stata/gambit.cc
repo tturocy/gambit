@@ -7,22 +7,16 @@
 #include "stplugin.h"
 #include "../libgambit/libgambit.h"
 
+//==================================================================================
+//                    Safe conversions from strings to numbers
+//==================================================================================
+
 // Exception raised on convering a string to a numeric value, when the
 // string does not contain a valid representation of the appropriate type.
 class ValueError : public std::exception {
 public:
   ValueError(const std::string &s) : m_what(s) { }
   virtual ~ValueError() throw() { }
-  const char *what() const throw() { return m_what.c_str(); }
-
-private:
-  std::string m_what;
-};
-
-class STATAError : public std::exception {
-public:
-  STATAError(const std::string &s) : m_what(s) { }
-  virtual ~STATAError() throw() { }
   const char *what() const throw() { return m_what.c_str(); }
 
 private:
@@ -71,6 +65,20 @@ double gambit_atof(const char *s)
   return x;
 }
 
+//==================================================================================
+//          Interaction with STATA engine, converting errors to exceptions
+//==================================================================================
+
+class STATAError : public std::exception {
+public:
+  STATAError(const std::string &s) : m_what(s) { }
+  virtual ~STATAError() throw() { }
+  const char *what() const throw() { return m_what.c_str(); }
+
+private:
+  std::string m_what;
+};
+
 
 // Wrapper for SF_display() to support printf()-like arguments.
 void stata_display(const char *format, ...)
@@ -107,6 +115,11 @@ inline void stata_scal_save(const char *scal, double v)
 		     std::string("'"));
   }
 }
+
+
+//==================================================================================
+//                         Interface to QRE tracing engine
+//==================================================================================
 
 #include "../tools/logit/nfglogit.h"
 
@@ -148,6 +161,8 @@ void STATAMLETracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
   }
 }
 
+// Compute the likelihood-maximizing value of lambda given a vector of choice
+// frequencies
 ST_retcode compute_qre_mle(const Gambit::Game &game, int argc, char *argv[])
 {
   double maxLambda = 1000000.0;
@@ -215,6 +230,8 @@ void STATALambdaTracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
   }
 }
 
+
+// Compute the QRE corresponding to a specified value of lambda
 ST_retcode compute_qre_eval(const Gambit::Game &game, int argc, char *argv[])
 {
   double targetLambda = 0.0;
@@ -251,10 +268,11 @@ ST_retcode compute_qre_eval(const Gambit::Game &game, int argc, char *argv[])
   return (ST_retcode) 0;
 }
 
+//==================================================================================
+//                          Defining and manipulating games
+//==================================================================================
 
-//
-// Create a game with the specified dimensions
-//
+// Create a game with specified dimensions
 ST_retcode create_game(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
 {
   if (argc < 3) {
@@ -286,14 +304,8 @@ ST_retcode create_game(Gambit::List<Gambit::Game> &handles, int argc, char *argv
   return (ST_retcode) 0;
 }
 
-//
 // Load a game from a savefile at the specified path.
-// If successful, store the game in the directory of games in 'handles',
-// and set the first observation in the first variable to the handle number.
-//
-// If no variables are specified, or the variables have zero length,
-// an error is raised, and the game is not saved to the handles list.
-//
+// If successful, store the game in the directory of games in 'handles'.
 ST_retcode load_game(Gambit::List<Gambit::Game> &handles, char *path)
 {
   Gambit::Game game;
@@ -312,12 +324,14 @@ ST_retcode load_game(Gambit::List<Gambit::Game> &handles, char *path)
   return (ST_retcode) 0;
 }
 
+// Return the number of players in a game
 ST_retcode count_players(const Gambit::Game &p_game)
 {
   stata_scal_save("_countplayers", p_game->NumPlayers());
   return (ST_retcode) 0;
 }
 
+// Return the number of strategies available to a player
 ST_retcode count_strategies(const Gambit::Game &game, int argc, char *argv[])
 {
   if (argc != 3) {
@@ -345,9 +359,7 @@ ST_retcode count_strategies(const Gambit::Game &game, int argc, char *argv[])
   return (ST_retcode) 0;
 }
 
-//
-// Return the payoff at a specific contingency
-//
+// Return the payoff at a contingency
 ST_retcode get_payoff(const Gambit::Game &game, int argc, char *argv[])
 {
   if (argc != game->NumPlayers() + 3) {
@@ -398,9 +410,7 @@ ST_retcode get_payoff(const Gambit::Game &game, int argc, char *argv[])
   return (ST_retcode) 0;
 }
 
-//
-// Set the payoff at a specific contingency
-//
+// Set the payoff at a contingency
 ST_retcode set_payoff(const Gambit::Game &game, int argc, char *argv[])
 {
   if (argc != game->NumPlayers() + 4) {
@@ -457,11 +467,7 @@ ST_retcode set_payoff(const Gambit::Game &game, int argc, char *argv[])
   return (ST_retcode) 0;
 }
 
-//
 // List all the games stored in the directory of games 'handles'.
-//
-// Does not raise any errors.
-//
 ST_retcode list_games(Gambit::List<Gambit::Game> &handles)
 {
   for (int i = 1; i <= handles.Length(); i++) {
@@ -472,12 +478,8 @@ ST_retcode list_games(Gambit::List<Gambit::Game> &handles)
 
 Gambit::List<Gambit::Game> handles;
 
-//
-// Main dispatcher routine.  Supports the following commands:
-//
-// load      load a game from a Gambit savefile and store in a handle
-// list      print a list of all games loaded
-//
+// Main entry point to STATA plugin, which handles dispatching method calls and
+// dealing with exceptions in an informative way.
 STDLL stata_call(int argc, char *argv[])
 {
   if (argc == 0)  {
@@ -553,5 +555,5 @@ STDLL stata_call(int argc, char *argv[])
     return ((ST_retcode) 198);
   }
 
-  return 0;
+  return (ST_retcode) 0;
 }
