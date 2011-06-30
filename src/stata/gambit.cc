@@ -148,11 +148,9 @@ void STATAMLETracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
   }
 }
 
-ST_retcode compute_qre_mle(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
+ST_retcode compute_qre_mle(const Gambit::Game &game, int argc, char *argv[])
 {
   double maxLambda = 1000000.0;
-
-  Gambit::Game game = handles[atoi(argv[1])];
 
   if (argc != game->MixedProfileLength() + 2) {
     stata_error("qre_mle requires one probability or frequency for each strategy.\n");
@@ -217,12 +215,10 @@ void STATALambdaTracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
   }
 }
 
-ST_retcode compute_qre_eval(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
+ST_retcode compute_qre_eval(const Gambit::Game &game, int argc, char *argv[])
 {
   double targetLambda = 0.0;
   double maxLambda = 1000000.0;
-
-  Gambit::Game game = handles[atoi(argv[1])];
 
   if (argc != 3) {
     stata_error("qre_eval requires target lambda parameter.\n");
@@ -271,7 +267,7 @@ ST_retcode create_game(Gambit::List<Gambit::Game> &handles, int argc, char *argv
     try {
       dim[pl] = gambit_atoi(argv[pl]);
     }
-    catch (ValueError e) {
+    catch (ValueError &e) {
       stata_error("invalid number of strategies '%s' for player '%d'.\n",
 		  argv[pl], pl);
       return (ST_retcode) 198;
@@ -322,22 +318,19 @@ ST_retcode count_players(const Gambit::Game &p_game)
   return (ST_retcode) 0;
 }
 
-ST_retcode count_strategies(Gambit::List<Gambit::Game> &handles,
-			    int argc, char *argv[])
+ST_retcode count_strategies(const Gambit::Game &game, int argc, char *argv[])
 {
   if (argc != 3) {
     stata_error("Exactly 2 arguments required for strategies.\n");
     return (ST_retcode) 198;
   }
 
-  Gambit::Game game = handles[atoi(argv[1])];
-
   int pl;
 
   try {
     pl = gambit_atoi(argv[2]);
   }
-  catch (ValueError e) {
+  catch (ValueError &e) {
     stata_error("invalid player index '%s'.\n", argv[2]);
     return (ST_retcode) 198;
   }
@@ -355,10 +348,8 @@ ST_retcode count_strategies(Gambit::List<Gambit::Game> &handles,
 //
 // Return the payoff at a specific contingency
 //
-ST_retcode get_payoff(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
+ST_retcode get_payoff(const Gambit::Game &game, int argc, char *argv[])
 {
-  Gambit::Game game = handles[atoi(argv[1])];
-
   if (argc != game->NumPlayers() + 3) {
     stata_error("Game with %d players requires %d arguments to getpayoff.\n",
 		game->NumPlayers(), game->NumPlayers() + 1);
@@ -370,7 +361,7 @@ ST_retcode get_payoff(Gambit::List<Gambit::Game> &handles, int argc, char *argv[
   try {
     pay_pl = gambit_atoi(argv[2]);
   }
-  catch (ValueError e) {
+  catch (ValueError &e) {
     stata_error("invalid player index '%s'.\n", argv[2]);
     return (ST_retcode) 198;
   }
@@ -388,7 +379,7 @@ ST_retcode get_payoff(Gambit::List<Gambit::Game> &handles, int argc, char *argv[
     try {
       st = gambit_atoi(argv[pl+2]);
     }
-    catch (ValueError e) {
+    catch (ValueError &e) {
       stata_error("invalid strategy index '%s' for player '%d'.\n",
 		  argv[pl], pl);
       return (ST_retcode) 198;
@@ -410,10 +401,8 @@ ST_retcode get_payoff(Gambit::List<Gambit::Game> &handles, int argc, char *argv[
 //
 // Set the payoff at a specific contingency
 //
-ST_retcode set_payoff(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
+ST_retcode set_payoff(const Gambit::Game &game, int argc, char *argv[])
 {
-  Gambit::Game game = handles[atoi(argv[1])];
-
   if (argc != game->NumPlayers() + 4) {
     stata_error("Game with %d players requires %d arguments to setpayoff.\n",
 		game->NumPlayers(), game->NumPlayers() + 2);
@@ -425,7 +414,7 @@ ST_retcode set_payoff(Gambit::List<Gambit::Game> &handles, int argc, char *argv[
   try {
     pay_pl = gambit_atoi(argv[2]);
   }
-  catch (ValueError e) {
+  catch (ValueError &e) {
     stata_error("invalid player index '%s'.\n", argv[2]);
     return (ST_retcode) 198;
   }
@@ -443,7 +432,7 @@ ST_retcode set_payoff(Gambit::List<Gambit::Game> &handles, int argc, char *argv[
     try {
       st = gambit_atoi(argv[pl+3]);
     }
-    catch (ValueError e) {
+    catch (ValueError &e) {
       stata_error("invalid strategy index '%s' for player '%d'.\n",
 		  argv[pl], pl);
       return (ST_retcode) 198;
@@ -514,50 +503,44 @@ STDLL stata_call(int argc, char *argv[])
     else if (!strcmp(argv[0], "list")) {
       return list_games(handles);
     }
-    else if (!strcmp(argv[0], "players")) {
-      if (argc == 1) {
-	stata_error("players command requires handle argument\n");
-	return ((ST_retcode) 198);
-      }
-      return count_players(handles[atoi(argv[1])]);
+
+    if (argc == 1) {
+      stata_error("'%s' command requires handle argument\n", argv[0]);
+      return ((ST_retcode) 198);
+    }
+    Gambit::Game game;
+    try {
+      game = handles[gambit_atoi(argv[1])];
+    }
+    catch (Gambit::IndexException &e) {
+      stata_error("invalid game handle '%s'\n", argv[1]);
+      return ((ST_retcode) 198);
+    }
+    catch (ValueError &e) {
+      stata_error(e.what());
+      return ((ST_retcode) 198);
+    }
+
+    if (!strcmp(argv[0], "players")) {
+      return count_players(game);
     }
     else if (!strcmp(argv[0], "strategies")) {
-      if (argc == 1) {
-	stata_error("strategies command requires handle argument\n");
-	return ((ST_retcode) 198);
-      }
-      return count_strategies(handles, argc, argv);
+      return count_strategies(game, argc, argv);
     }
     else if (!strcmp(argv[0], "qre_mle")) {
-      if (argc == 1) {
-	stata_error("qre_mle command requires handle argument\n");
-	return ((ST_retcode) 198);
-      }
-      return compute_qre_mle(handles, argc, argv);
+      return compute_qre_mle(game, argc, argv);
     }    
     else if (!strcmp(argv[0], "qre_eval")) {
-      if (argc == 1) {
-	stata_error("qre_eval command requires handle argument\n");
-	return ((ST_retcode) 198);
-      }
-      return compute_qre_eval(handles, argc, argv);
+      return compute_qre_eval(game, argc, argv);
     }    
     else if (!strcmp(argv[0], "getpayoff")) {
-      if (argc == 1) {
-	stata_error("getpayoff command requires handle argument\n");
-	return ((ST_retcode) 198);
-      }
-      return get_payoff(handles, argc, argv);
+      return get_payoff(game, argc, argv);
     }
     else if (!strcmp(argv[0], "setpayoff")) {
-      if (argc == 1) {
-	stata_error("setpayoff command requires handle argument\n");
-	return ((ST_retcode) 198);
-      }
-      return set_payoff(handles, argc, argv);
+      return set_payoff(game, argc, argv);
     }
     else {
-      stata_error("unknown option specified\n");
+      stata_error("unknown method '%s' specified\n", argv[0]);
       return ((ST_retcode) 198);
     }
   }
