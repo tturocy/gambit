@@ -44,7 +44,7 @@ the file ``mygame.nfg``::
    .g = .game.new
    .g.load mygame.nfg
 
-The member program ``.save'' writes the game out to a Gambit 
+The member program ``.save`` writes the game out to a Gambit 
 :ref:`savefile in .nfg format <file-formats-nfg>`.  For
 example, to save the game ``.g`` to the file ``mynewgame.nfg``::
 
