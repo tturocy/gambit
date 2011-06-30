@@ -30,12 +30,22 @@ program .setpayoff
   plugin call $gambit, setpayoff `.handle' `0'
   class exit 0
 end
-program .qre
-  plugin call $gambit, qre `.handle' `0'
-  di _lambda
+program .qre_mle
+  plugin call $gambit, qre_mle `.handle' `0'
   .p = .mixed.new
   .p.lambda = _lambda
   .p.logL = _logL
+  forvalues pl=1(1)`.players'  {  
+    .p.probs[`pl'] = { }
+    forvalues st=1(1)`.strategies `pl'' {
+       .p.probs[`pl'][`st'] = _prob_`pl'_`st'
+    }
+  }
+  class exit .p
+end
+program .qre_eval
+  plugin call $gambit, qre_eval `.handle' `0'
+  .p = .mixed.new
   forvalues pl=1(1)`.players'  {  
     .p.probs[`pl'] = { }
     forvalues st=1(1)`.strategies `pl'' {

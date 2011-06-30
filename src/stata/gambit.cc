@@ -110,12 +110,12 @@ inline void stata_scal_save(const char *scal, double v)
 
 #include "../tools/logit/nfglogit.h"
 
-class STATATracer : public StrategicQREPathTracer {
+class STATAMLETracer : public StrategicQREPathTracer {
 public:
-  STATATracer(const MixedStrategyProfile<double> &p_start)
+  STATAMLETracer(const MixedStrategyProfile<double> &p_start)
     : StrategicQREPathTracer(p_start), 
       m_mleLambda(-1.0), m_mleLogLike(0.0), m_mleProfile(p_start) { }
-  virtual ~STATATracer() { }
+  virtual ~STATAMLETracer() { }
 
   double GetMLELambda(void) const { return m_mleLambda; }
   double GetMLELogLike(void) const { return m_mleLogLike; }
@@ -130,7 +130,7 @@ private:
   MixedStrategyProfile<double> m_mleProfile;
 };
 
-void STATATracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
+void STATAMLETracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
 {
   double logL = 0.0;
   
@@ -148,14 +148,14 @@ void STATATracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
   }
 }
 
-ST_retcode compute_qre(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
+ST_retcode compute_qre_mle(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
 {
   double maxLambda = 1000000.0;
 
   Gambit::Game game = handles[atoi(argv[1])];
 
   if (argc != game->MixedProfileLength() + 2) {
-    stata_error("qre requires one probability or frequency for each strategy.\n");
+    stata_error("qre_mle requires one probability or frequency for each strategy.\n");
     return (ST_retcode) 198;
   }
 
@@ -165,13 +165,13 @@ ST_retcode compute_qre(Gambit::List<Gambit::Game> &handles, int argc, char *argv
     try {
       frequencies[i] = gambit_atof(argv[i+1]);
     }
-    catch (ValueError e) {
+    catch (ValueError &e) {
       stata_error("invalid floating-point number '%s'.\n", argv[i+1]);
       return (ST_retcode) 198;
     }
   }
 
-  STATATracer tracer(start);
+  STATAMLETracer tracer(start);
   tracer.SetMLEFrequencies(frequencies);
   tracer.TraceStrategicPath(start, 0.0, maxLambda, 1.0);
 
@@ -190,6 +190,71 @@ ST_retcode compute_qre(Gambit::List<Gambit::Game> &handles, int argc, char *argv
 
   return (ST_retcode) 0;
 }
+
+class STATALambdaTracer : public StrategicQREPathTracer {
+public:
+  STATALambdaTracer(const MixedStrategyProfile<double> &p_start)
+    : StrategicQREPathTracer(p_start), m_lambda(0.0), m_profile(p_start) { }
+  virtual ~STATALambdaTracer() { }
+
+  double GetLambda(void) const { return m_lambda; }
+  const MixedStrategyProfile<double> &GetProfile(void) const
+  { return m_profile; }
+
+protected:
+  virtual void OnStep(const Vector<double> &, bool);
+
+private:
+  double m_lambda;
+  MixedStrategyProfile<double> m_profile;
+};
+
+void STATALambdaTracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
+{
+  m_lambda = p_point[p_point.Length()];
+  for (int i = 1; i <= m_profile.Length(); i++) {
+    m_profile[i] = exp(p_point[i]);
+  }
+}
+
+ST_retcode compute_qre_eval(Gambit::List<Gambit::Game> &handles, int argc, char *argv[])
+{
+  double targetLambda = 0.0;
+  double maxLambda = 1000000.0;
+
+  Gambit::Game game = handles[atoi(argv[1])];
+
+  if (argc != 3) {
+    stata_error("qre_eval requires target lambda parameter.\n");
+    return (ST_retcode) 198;
+  }
+  try {
+    targetLambda = gambit_atof(argv[2]);
+  }
+  catch (ValueError &e) {
+    stata_error("invalid floating-point number '%s'.\n", argv[2]);
+    return (ST_retcode) 198;
+  }
+
+  Gambit::MixedStrategyProfile<double> start(game);
+  STATALambdaTracer tracer(start);
+  tracer.SetTargetParam(targetLambda);
+  tracer.TraceStrategicPath(start, 0.0, maxLambda, 1.0);
+
+  stata_scal_save("_lambda", tracer.GetLambda());
+  for (int pl = 1; pl <= game->NumPlayers(); pl++) {
+    GamePlayer player = game->GetPlayer(pl);
+    for (int st = 1; st <= player->NumStrategies(); st++) {
+      std::ostringstream os;
+      os << "_prob_" << pl << "_" << st;
+      stata_scal_save(os.str().c_str(),
+		      tracer.GetProfile()[player->GetStrategy(st)]);
+    }
+  }
+
+  return (ST_retcode) 0;
+}
+
 
 //
 // Create a game with the specified dimensions
@@ -463,12 +528,19 @@ STDLL stata_call(int argc, char *argv[])
       }
       return count_strategies(handles, argc, argv);
     }
-    else if (!strcmp(argv[0], "qre")) {
+    else if (!strcmp(argv[0], "qre_mle")) {
       if (argc == 1) {
-	stata_error("qre command requires handle argument\n");
+	stata_error("qre_mle command requires handle argument\n");
 	return ((ST_retcode) 198);
       }
-      return compute_qre(handles, argc, argv);
+      return compute_qre_mle(handles, argc, argv);
+    }    
+    else if (!strcmp(argv[0], "qre_eval")) {
+      if (argc == 1) {
+	stata_error("qre_eval command requires handle argument\n");
+	return ((ST_retcode) 198);
+      }
+      return compute_qre_eval(handles, argc, argv);
     }    
     else if (!strcmp(argv[0], "getpayoff")) {
       if (argc == 1) {

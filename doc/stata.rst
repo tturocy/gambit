@@ -116,6 +116,52 @@ A sequence that creates this game can be written::
    .g.setpayoff 2 4 2 2
 
 
+Computation of quantal response equilibria
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Two facilities are provided for evaluating the quantal response equilibria of
+the game, ``.qre_mle`` and ``.qre_eval``.
+
+The member program ``.qre_mle`` computes the maximum likelihood estimate of
+the QRE parameter lambda, given a vector of observed strategy choice frequencies.
+The program takes as parameters a list of observed frequencies, one for
+each strategy in the game.  Frequencies for player 1's strategies are given
+first in order, followed by player 2's strategies, and so on.  For instance,
+in the prisoner's dilemma example, if player 1 played ``cooperate`` 8 times
+and ``defect`` 2 times, and player 2 played ``cooperate`` 6 times and
+``defect`` 4 times, the appropriate call would be::
+
+   .mp = .g.qre_mle 8 2 6 4
+
+The object returned by the call is a mixed strategy profile.  It contains a
+member ``.lambda``, which reports the value of lambda at which the likelihood
+is maximized.  The member ``.probs`` reports the probabilities of the
+corresponding QRE.  This is a two-dimensional array indexed by player number
+and strategy number; e.g., ``.probs[1][2]`` returns the probability player 1
+plays his second strategy.  Finally, the member ``.logL`` contains the
+log-likelihood of the data at the estimated profile.
+
+The member program ``.qre_eval`` computes a QRE at a specified parameter
+lambda, which it takes as its only parameter.  For instance, to compute the
+QRE corresponding to a lambda value of 0.9::
+
+   .mp = .g.qre_eval 0.9
+
+This also returns a mixed strategy profile object with members ``.lambda``
+and ``.probs``.
+
+Both these routines trace only along the principal branch of the quantal
+response equilibrium correspondence, i.e., the one emanating from the centroid
+when lambda is zero.  
+
+The program ``.qre_mle`` assumes that all observations are independent in
+constructing the likelihood function.  The program uses a Newton search
+method to identify the maximizing value of lambda to high precision.
+
+For games in which the principal branch has a
+backwards-bending component, ``.qre_eval`` finds only the first QRE with
+the specified lambda when traversing starting at the centroid.
+
 
 Low-level interface: gambit.plugin
 ----------------------------------
@@ -218,5 +264,30 @@ quantities.  These include:
 
    ``strategies`` returns the number of strategies in the local macro
    ``_countstrategies``.
+
+``qre_mle``
+
+   Computes the maximum likelihood estimate of the QRE parameter lambda
+   given a vector of choice frequencies.  The parameters of the function are
+   the choice frequences, with player 1's choices specified first in order,
+   then player 2's, and so on.
+
+   ``qre_mle`` returns the computed likelihood-maximizing value of lambda
+   in the local macro ``_lambda``, and the value of the log-likelihood function
+   in the local macro ``_logL``.  The strategy probabilities associated with the
+   corresponding QRE are returned in local macros starting with ``_prob`` and
+   indexed by the player number and strategy number, e.g., ``_prob_1_2``
+   contains the probability that player 1 plays his second strategy in the
+   computed QRE.
+
+``qre_eval``
+
+   Computes a QRE of the game for a specified value of the QRE parameter lambda.
+   For the game with handle 1, to compute the QRE at a lambda value of 0.9 use::
+
+      plugin call gambit, qre_eval 0.9
+
+   The returned values of ``_lambda`` and ``prob_*_*`` are as described for
+   ``qre_mle``.
 
 
