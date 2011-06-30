@@ -10,7 +10,8 @@ estimated simultaneously with one or more other parameters, such as
 risk preferences, social preferences, and so forth.
 
 The QRE tracing call is a wrapper around the code also exposed in the
-:program:`gambit-logit` command-line tool.  This operates in a mode which
+:ref:`gambit-logit command-line tool <gambit-logit>`.
+This operates in a mode which
 identifies local maxima of the likelihood function, using a Newton
 search method to locate the maximum precisely along the branch of the
 correspondence.
