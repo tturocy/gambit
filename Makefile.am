@@ -247,6 +247,8 @@ EXTRA_DIST = \
 	src/stata/Makefile.osx \
 	src/stata/README.txt \
 	src/stata/gambit.cc \
+	src/stata/game.class \
+	src/stata/mixed.class \
 	src/stata/stplugin.c \
 	src/stata/stplugin.h
 
