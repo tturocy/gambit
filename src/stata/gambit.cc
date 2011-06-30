@@ -324,6 +324,26 @@ ST_retcode load_game(Gambit::List<Gambit::Game> &handles, char *path)
   return (ST_retcode) 0;
 }
 
+// Save a game to a savefile at the specified path.
+ST_retcode save_game(const Gambit::Game &game, int argc, char *argv[])
+{
+  if (argc != 3) {
+    stata_error("Exactly 2 arguments required for save.\n");
+    return (ST_retcode) 198;
+  }
+
+  try {
+    std::ofstream f(argv[2]);
+    game->WriteNfgFile(f);
+  }
+  catch (...) {
+    stata_error("An error occurred in writing the game savefile '%s'.\n", argv[2]);
+    return (ST_retcode) 198;
+  }
+
+  return (ST_retcode) 0;
+}
+
 // Return the number of players in a game
 ST_retcode count_players(const Gambit::Game &p_game)
 {
@@ -540,6 +560,9 @@ STDLL stata_call(int argc, char *argv[])
     }
     else if (!strcmp(argv[0], "setpayoff")) {
       return set_payoff(game, argc, argv);
+    }
+    else if (!strcmp(argv[0], "save")) {
+      return save_game(game, argc, argv);
     }
     else {
       stata_error("unknown method '%s' specified\n", argv[0]);

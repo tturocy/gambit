@@ -22,8 +22,8 @@ Intermediate-level interface: game.class
 The intermediate-level interface to the library is via the ADO class
 ``game``, in the file ``game.class``.
 
-Creating or loading a game
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Creating, loading, and saving games
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A new strategic form game is created by a call to the member program
 ``.create``. Parameters are a list of the number of strategies for each
@@ -43,6 +43,13 @@ the file ``mygame.nfg``::
 
    .g = .game.new
    .g.load mygame.nfg
+
+The member program ``.save'' writes the game out to a Gambit 
+:ref:`savefile in .nfg format <file-formats-nfg>`.  For
+example, to save the game ``.g`` to the file ``mynewgame.nfg``::
+
+   .g.save mynewgame.nfg
+
 
 
 Dimensions of a game
@@ -234,6 +241,15 @@ directly using the low-level interface via the sequence of calls::
 API methods which return values use local macros for the returned
 quantities.  These include:
 
+``save``
+
+   Write the game out to a Gambit
+   :ref:`savefile in .nfg format <file-formats-nfg>`.  Takes the filename
+   to write as a parameter.  For the game with handle 1, to write to the file
+   ``mygamefile.nfg``, use::
+
+      plugin call gambit, save 1 mygamefile.nfg
+
 ``getpayoff``
 
    Returns the payoff to a player from a given combination of strategies.
@@ -289,5 +305,4 @@ quantities.  These include:
 
    The returned values of ``_lambda`` and ``prob_*_*`` are as described for
    ``qre_mle``.
-
 

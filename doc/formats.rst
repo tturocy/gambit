@@ -263,6 +263,7 @@ the character t . Following this, in order, are:
 There is no explicit end-of-file delimiter for the file.
 
 
+.. _file-formats-nfg:
 
 The strategic game (.nfg) file format, payoff version
 -----------------------------------------------------

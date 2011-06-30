@@ -14,6 +14,10 @@ program .create
   .handle = _newhandle
   class exit 0
 end
+program .save
+  plugin call $gambit, save `.handle' `0'
+  class exit 0
+end
 program .players
   plugin call $gambit, players `.handle'
   class exit _countplayers
