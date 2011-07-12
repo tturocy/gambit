@@ -11,7 +11,7 @@ if 'setuptools.extension' in sys.modules:
     
 import glob
 libgame = Extension("gambit.lib.game",
-                    sources=[ "gambit/lib/game.wrap.pyx" ] +
+                    sources=[ "gambit/lib/game.wrap.pyx","gambit/lib/game.pxi","gambit/lib/mixed.pxi","gambit/lib/node.pxi","gambit/lib/outcome.pxi","gambit/lib/outcomes.pxi","gambit/lib/player.pxi","gambit/lib/players.pxi","gambit/lib/strategies.pxi","gambit/lib/strategy.pxi" ] +
                             glob.glob("../libgambit/*.cc"),
                     language="c++",
                     include_dirs=[ ".." ] )
