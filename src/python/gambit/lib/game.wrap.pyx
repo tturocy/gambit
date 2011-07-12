@@ -150,6 +150,10 @@ include "mixed.pyx"
 
 include "game.pyx"
 
+######################
+# Functions
+######################
+
 
 def new_tree():
     cdef Game g
