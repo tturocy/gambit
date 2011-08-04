@@ -48,3 +48,23 @@ class TestGambitStrategicGame(object):
 		assert self.game.players[1].strategies[0].label == "Cooperate"
 		assert self.game.players[1].strategies[1].label == "Defect"
 	
+	def test_game_add_outcomes(self):
+		"Test to verify outcome indexing"
+		self.game.title = "A prisoner's dilemma game"
+		self.game.players[0].label = "Alphonse"
+		self.game.players[1].label = "Gaston"
+		assert len(self.game.players[0].strategies) == 2
+		assert len(self.game.players[1].strategies) == 2
+
+		self.game.players[0].strategies[0].label = "Cooperate"
+		self.game.players[0].strategies[1].label = "Defect"
+		assert self.game.players[0].strategies[0].label == "Cooperate"
+		assert self.game.players[0].strategies[1].label == "Defect"
+		self.game.players[1].strategies[0].label = "Cooperate"
+		self.game.players[1].strategies[1].label = "Defect"
+		assert self.game.players[1].strategies[0].label == "Cooperate"
+		assert self.game.players[1].strategies[1].label == "Defect"
+		
+		self.game.outcomes[0].label = "trial"
+		assert self.game.outcomes[0].label == "trial"
+		
