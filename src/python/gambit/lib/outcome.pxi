@@ -1,6 +1,6 @@
 cdef class Outcome:
     cdef c_GameOutcome outcome
-
+    
     def __repr__(self):
         return "<Outcome [%d] '%s' in game '%s'>" % (self.outcome.deref().GetNumber()-1,
                                                      self.label,
@@ -29,9 +29,26 @@ cdef class Outcome:
         def __get__(self):
             return self.outcome.deref().GetLabel().c_str()
         def __set__(self, char *value):
+            # check to see if the new outcome label has been used elsewhere
+            c = Outcomes()
+            c.game = self.outcome.deref().GetGame()
+            
+            # variable to controlling raising duplicate label name after assignment
+            raise_exception = 0
+            
+            for i in range(0, len(c)):
+                d = c[i]
+                if d.label == value and d != self:
+                    raise_exception = 1
+
             cdef cxx_string s
             s.assign(value)
             self.outcome.deref().SetLabel(s)
+
+            if raise_exception:
+                raise Warning("Another outcome with an identical label exists")
+                
+
 
     def __getitem__(self, pl):
         cdef bytes py_string

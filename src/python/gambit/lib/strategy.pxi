@@ -30,6 +30,25 @@ cdef class Strategy:
         def __get__(self):
             return self.strategy.deref().GetLabel().c_str()
         def __set__(self, char *value):
+            # check to see if the player's name has been used elsewhere
+            c = Strategies()
+            c.player = self.strategy.deref().GetPlayer()
+            
+            # variable to controlling raising duplicate label name after assignment
+            raise_exception = 0
+            
+            for i in range(0, len(c)):
+                d = c[i]
+                if d.label == value and d != self:
+                    raise_exception = 1
+            
             cdef cxx_string s
             s.assign(value)
             self.strategy.deref().SetLabel(s)
+
+            if raise_exception:
+                raise Warning("This player has another strategy with an identical label")
+
+    property strategy_number:
+        def __get__(self):
+            return self.strategy.deref().GetNumber()-1
