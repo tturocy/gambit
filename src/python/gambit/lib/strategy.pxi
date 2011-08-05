@@ -34,14 +34,10 @@ cdef class Strategy:
             c = Strategies()
             c.player = self.strategy.deref().GetPlayer()
             
-            # variable to controlling raising duplicate label name after assignment
             raise_exception = 0
-            
-            for i in range(0, len(c)):
-                d = c[i]
-                if d.label == value and d != self:
-                    raise_exception = 1
-            
+            if value in [i.label for i in c]:
+                raise_exception = 1
+
             cdef cxx_string s
             s.assign(value)
             self.strategy.deref().SetLabel(s)

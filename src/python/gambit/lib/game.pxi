@@ -83,7 +83,7 @@ cdef class Game:
     # to __getitem__, which is required for multidimensional slicing to work. 
     # We work around this by providing a shim.
     def __getitem__(self, i):
-        if type(i) is tuple:
+        if  isinstance(i, tuple):
             acceptable_types = [str,int,Strategy]
             element_types = type(i[0])
             for item in i:
@@ -108,7 +108,7 @@ cdef class Game:
                     step_counter += 1
                 return self._get_contingency(*tuple(strategy_num_list))
         else:
-            raise IndexError("Must use a tuple of ints, strategy labels, or strategies")
+            raise IndexError("Must use a tuple of ints, strategy labels, or strategies")      
             
 
 

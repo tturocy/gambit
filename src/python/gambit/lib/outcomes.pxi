@@ -9,7 +9,7 @@ cdef class Outcomes:
 
     def __getitem__(self, outc):
         cdef Outcome c
-        if type(outc) is int:
+        if  isinstance(outc, int):
             if outc < 0 or outc >= len(self):
                 raise IndexError("no outcome with index '%s'" % outc)
             c = Outcome()
@@ -17,24 +17,20 @@ cdef class Outcomes:
             
             return c
 
-        elif type(outc) is str:
-            for i in range(1, len(self) + 1):
-                c = Outcome()
-                c.outcome = self.game.deref().GetOutcome(i)
-                if c.label == outc:
-                    return c
+        elif  isinstance(outc, str):
+            for outcome in self:
+                if outcome.label == outc:
+                    return outcome
 
             raise IndexError("no outcome with label '%s'" % outc)
 
-        elif type(outc) is Outcome:
-            for i in range(1, len(self) + 1):
-                c = Outcome()
-                c.outcome = self.game.deref().GetOutcome(i)
-                if c == outc:
-                    return c
+        elif  isinstance(outc, Outcome):
+            for outcome in self:
+                if outcome == outc:
+                    return outcome
 
             raise IndexError("Outcome does not exist in this game '%s'" % outc)
 
         else:
-            raise IndexError("Invalid input to find Outcome. Please use ints, strings, or Outcome objects")
+            raise TypeError("Invalid input to find Outcome. Please use ints, strings, or Outcome objects")
   
