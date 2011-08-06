@@ -30,10 +30,20 @@ cdef class Player:
     property label:
         def __get__(self):
             return self.player.deref().GetLabel().c_str()
+
         def __set__(self, char *value):
+            # check to see if the player's name has been used elsewhere
+            c = Players()
+            c.game = self.player.deref().GetGame()
+            
+            if value in [i.label for i in c]:
+                warnings.warn("Another player with an identical label exists")
+
             cdef cxx_string s
             s.assign(value)
             self.player.deref().SetLabel(s)
+
+
 
     property is_chance:
         def __get__(self):

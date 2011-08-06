@@ -67,7 +67,8 @@ cdef class Game:
         cdef c_PureStrategyProfile *psp
         cdef Outcome outcome
         psp = new_PureStrategyProfile(self.game)
-
+        
+        
         for (pl, st) in enumerate(args):
             psp.SetStrategy(self.game.deref().GetPlayer(pl+1).deref().GetStrategy(st+1))
 
@@ -76,11 +77,30 @@ cdef class Game:
         del_PureStrategyProfile(psp)
         return outcome
 
+
+
     # As of Cython 0.11.2, cython does not support the * notation for the argument
     # to __getitem__, which is required for multidimensional slicing to work. 
     # We work around this by providing a shim.
     def __getitem__(self, i):
-        return self._get_contingency(*i)
+        strategy_index_list = []
+        if len(i) != len(self.players):
+            raise KeyError, "Number of strategies is not equal to the number of players"
+        for st in xrange(len(i)):
+            if isinstance(i[st], int):
+                if i[st] < 0 or i[st] >= len(self.players[st].strategies):
+                    raise IndexError, "Provided strategy index %d out of range" % st
+                strategy_index_list.append(i[st])
+            elif isinstance(i[st], str):
+                strategy_index_list.append(self.players[st].strategies[i[st]].strategy_number)
+            elif isinstance(i[st], Strategy):
+                strategy_index_list.append(self.players[st].strategies[i[st]].strategy_number)
+            else:
+                raise TypeError("Must use a tuple of ints, strategy labels, or strategies")
+
+        return self._get_contingency(*tuple(strategy_index_list))
+
+
 
     def mixed_profile(self):
         cdef MixedStrategyProfileDouble msp
