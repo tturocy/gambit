@@ -22,7 +22,6 @@ cdef class Players:
                 if player.label == pl:
                     return player
 
-
             raise IndexError("no Player with label '%s'" % pl)
         
         elif isinstance(pl, Player):

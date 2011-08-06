@@ -83,33 +83,23 @@ cdef class Game:
     # to __getitem__, which is required for multidimensional slicing to work. 
     # We work around this by providing a shim.
     def __getitem__(self, i):
-        if  isinstance(i, tuple):
-            acceptable_types = [str,int,Strategy]
-            element_types = type(i[0])
-            for item in i:
-                if type(item) != element_types:
-                    raise TypeError("All elements of the selection must be of the same type")
-                elif type(item) not in acceptable_types:
-                    raise TypeError("Elements of the selection must be ints, strategy labels, or strategies")
-            if element_types == int:        
-                return self._get_contingency(*i)
-            elif element_types == str:
-                strategy_num_list = []
-                step_counter = 0
-                for item in i:
-                    strategy_num_list.append(self.players[step_counter].strategies[item].strategy_number)
-                    step_counter += 1
-                return self._get_contingency(*tuple(strategy_num_list))
-            elif element_types == Strategy:
-                strategy_num_list = []
-                step_counter = 0
-                for item in i:
-                    strategy_num_list.append(self.players[step_counter].strategies[item].strategy_number)
-                    step_counter += 1
-                return self._get_contingency(*tuple(strategy_num_list))
-        else:
-            raise IndexError("Must use a tuple of ints, strategy labels, or strategies")      
-            
+        strategy_index_list = []
+        if len(i) != len(self.players):
+            raise KeyError, "Number of strategies is not equal to the number of players"
+        for st in xrange(len(i)):
+            if isinstance(i[st], int):
+                if i[st] < 0 or i[st] >= len(self.players[st].strategies):
+                    raise IndexError, "Provided strategy index %d out of range" % st
+                strategy_index_list.append(i[st])
+            elif isinstance(i[st], str):
+                strategy_index_list.append(self.players[st].strategies[i[st]].strategy_number)
+            elif isinstance(i[st], Strategy):
+                strategy_index_list.append(self.players[st].strategies[i[st]].strategy_number)
+            else:
+                raise TypeError("Must use a tuple of ints, strategy labels, or strategies")
+
+        return self._get_contingency(*tuple(strategy_index_list))
+
 
 
     def mixed_profile(self):

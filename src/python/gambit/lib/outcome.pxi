@@ -33,19 +33,13 @@ cdef class Outcome:
             c = Outcomes()
             c.game = self.outcome.deref().GetGame()
             
-            # variable to controlling raising duplicate label name after assignment
-            raise_exception = 0
-
             if value in [i.label for i in c]:
-                raise_exception = 1
+                warnings.warn("Another outcome with an identical label exists")
 
             cdef cxx_string s
             s.assign(value)
             self.outcome.deref().SetLabel(s)
 
-            if raise_exception:
-                raise Warning("Another outcome with an identical label exists")
-                
 
 
     def __getitem__(self, pl):

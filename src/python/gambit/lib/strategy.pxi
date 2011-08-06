@@ -34,17 +34,19 @@ cdef class Strategy:
             c = Strategies()
             c.player = self.strategy.deref().GetPlayer()
             
-            raise_exception = 0
             if value in [i.label for i in c]:
-                raise_exception = 1
+                warnings.warn("This player has another strategy with an identical label")
 
             cdef cxx_string s
             s.assign(value)
             self.strategy.deref().SetLabel(s)
 
-            if raise_exception:
-                raise Warning("This player has another strategy with an identical label")
 
     property strategy_number:
         def __get__(self):
             return self.strategy.deref().GetNumber()-1
+
+    property player:
+        def __get__(self):
+            p = Player()
+            p.player = self.strategy.deref().GetPlayer()
