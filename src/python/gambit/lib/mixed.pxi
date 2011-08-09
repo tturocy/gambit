@@ -56,19 +56,21 @@ cdef class MixedStrategyProfileDouble:
             setitem_MixedStrategyProfileDouble_Strategy(self.profile, 
                                                         (<Strategy>index).strategy, value)
         elif isinstance(index, str):
-           # check to see if string is referring to a player
-            found_strategy = [item for strategy_list in 
-                             [y for y in [x.strategies for x in self.game.players]] 
-                             for item in strategy_list if item.label == index]
-            if len(found_strategy) == 1:
+            strategies = reduce(lambda x,y: x+y,
+                                [ p.strategies for p in self.game.players ])
+            matches = filter(lambda x: x.label==index, strategies)
+            if len(matches) == 1:
                 setitem_MixedStrategyProfileDouble_Strategy(self.profile, 
                                                            (<Strategy>
-                                                            found_strategy[0])
+                                                            matches[0])
                                                             .strategy, value)
+            elif len(matches) == 0:
+                raise IndexError("no player or strategy matching label '%s'" % index)
             else:
-                raise IndexError, "Strategy not found in any players"
+                raise IndexError("multiple strategies matching label '%s'" % index)
         else:
-            raise TypeError, "unexpected type passed to __getitem__ on strategy profile"
+            raise TypeError("profile indexes must be int, str, or Strategy, not %s" %
+                            index.__class__.__name__)
 
     def __richcmp__(MixedStrategyProfileDouble self, other, whichop):
         if whichop == 0:
