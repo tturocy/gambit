@@ -122,6 +122,9 @@ cdef class MixedStrategyProfileDouble:
     def strategy_values(self, player):
         if isinstance(player, str):
             player = self.game.players[player]
+        elif not isinstance(player, Player):
+            raise TypeError("strategy values index must be str or Player, not %s" %
+                            player.__class__.__name__)
         return [self.strategy_value(item) for item in player.strategies]
 
     def liap_value(self):
