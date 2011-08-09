@@ -16,27 +16,19 @@ cdef class MixedStrategyProfileDouble:
         elif isinstance(index, Strategy):
             return self.profile.getitem_Strategy((<Strategy>index).strategy)
         elif isinstance(index, Player):
-            class mixed_profile_shim:
-                def __init__(self, parent, player):
-                    self.parent = parent
+            class MixedStrategy(object):
+                def __init__(self, profile, player):
+                    self.profile = profile
                     self.player = player
-
                 def __len__(self):
-                    return self.parent.profile.MixedProfileLength()
-
+                    return len(self.player.strategies)
                 def __repr__(self):
-                    return str(list(self.parent[self.player]))
-
+                    return str(list(self.profile[self.player]))
                 def __getitem__(self, index):
                     return self.parent[self.player.strategies[index]]
-                
                 def __setitem__(self, index, value):
                     self.parent[self.player.strategies[index]] = value
-
-            temp = mixed_profile_shim(self, index)
-
-            return temp
-            #return [ self[s] for s in index.strategies ]
+            return MixedStrategy(self, index)
         elif isinstance(index, str):
             # check to see if string is referring to a player
             if len([item for strategy_list in 
