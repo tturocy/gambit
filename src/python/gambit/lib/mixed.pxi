@@ -30,20 +30,24 @@ cdef class MixedStrategyProfileDouble:
                     self.parent[self.player.strategies[index]] = value
             return MixedStrategy(self, index)
         elif isinstance(index, str):
-            # check to see if string is referring to a player
-            if len([item for strategy_list in 
-                     [y for y in [x.strategies for x in self.game.players]] 
-                     for item in strategy_list if item.label == index]) == 1:
-                return self[[item for strategy_list in 
-                           [y for y in [x.strategies for x in self.game.players]] 
-                           for item in strategy_list if item.label == index][0]]
-            else:
+            try:
+                # first check to see if string is referring to a player
                 return self[self.game.players[index]]
-            raise IndexError, "Player or player's strategy label does note exist"
+            except IndexError:
+                pass
+            # if no player matches, check strategy labels
+            strategies = reduce(lambda x,y: x+y,
+                                [ p.strategies for p in self.game.players ])
+            matches = filter(lambda x: x.label==index, strategies)
+            if len(matches) == 1:
+                return self[matches[0]]
+            elif len(matches) == 0:
+                raise IndexError("no player or strategy matching label '%s'" % index)
+            else:
+                raise IndexError("multiple strategies matching label '%s'" % index)
         else:
-            raise TypeError, "unexpected type passed to __getitem__ on strategy profile"
-
-
+            raise TypeError("profile indexes must be int, str, Player, or Strategy, not %s" %
+                            index.__class__.__name__)
 
     def __setitem__(self, index, value):
         if isinstance(index, int):
