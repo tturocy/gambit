@@ -94,15 +94,12 @@ cdef class MixedStrategyProfileDouble:
             return g
 
     def payoff(self, player):
-        cdef Player p
-        p = Player()
-        
         if isinstance(player, Player):
-            p = player
-            return self.profile.GetPayoff(p.player)
-        elif isinstance(player, str):
+            return self.profile.GetPayoff((<Player>player).player)
+        elif isinstance(player, (int, str)):
             return self.payoff(self.game.players[player])
-        raise TypeError, "Must be of type Player or str"
+        raise TypeError("profile payoffs index must be int, str, or Player, not %s" %
+                        player.__class__.__name__)
 
     def strategy_value(self, strategy):
         cdef Strategy s
