@@ -102,17 +102,22 @@ cdef class MixedStrategyProfileDouble:
                         player.__class__.__name__)
 
     def strategy_value(self, strategy):
-        cdef Strategy s
-        s = Strategy()
-        
         if isinstance(strategy, Strategy):
-            s = strategy
-            return self.profile.GetStrategyValue(s.strategy)
+            return self.profile.GetStrategyValue((<Strategy>strategy).strategy)
         elif isinstance(strategy, str):
-            return self.strategy_value(
-                       [item for strategy_list in 
-                       [y for y in [x.strategies for x in self.game.players]] 
-                       for item in strategy_list if item.label == strategy][0])
+            strategies = reduce(lambda x,y: x+y,
+                                [ list(p.strategies)
+                                  for p in self.game.players ])
+            matches = filter(lambda x: x.label==strategy, strategies)
+            if len(matches) == 1:
+                return self.strategy_value(matches[0])
+            elif len(matches) == 0:
+                raise IndexError("no strategy matching label '%s'" % strategy)
+            else:
+                raise IndexError("multiple strategies matching label '%s'" % strategy)
+        else:
+           raise TypeError("strategy values index must be str or Strategy, not %s" %
+                           strategy.__class__.__name__)
             
     def strategy_values(self, player):
         if isinstance(player, str):
