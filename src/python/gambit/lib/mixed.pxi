@@ -10,48 +10,53 @@ cdef class MixedStrategyProfileDouble:
     def __repr__(self):
         return str(list(self))
 
+    def _resolve_index(self, index, players=True):
+        # Given a string index, resolve into a player or strategy object.
+        if players:
+            try:
+                # first check to see if string is referring to a player
+                return self[self.game.players[index]]
+            except IndexError:
+                pass
+	# if no player matches, check strategy labels
+        strategies = reduce(lambda x,y: x+y,
+                            [ list(p.strategies) 
+                              for p in self.game.players ])
+        matches = filter(lambda x: x.label==index, strategies)
+        if len(matches) == 1:
+            return matches[0]
+        elif len(matches) == 0:
+            if players:
+                raise IndexError("no player or strategy matching label '%s'" % index)
+            else:
+                raise IndexError("no strategy matching label '%s'" % index)
+        else:
+            raise IndexError("multiple strategies matching label '%s'" % index)
+
     def __getitem__(self, index):
         if isinstance(index, int):
             return self.profile.getitem_int(index+1)
         elif isinstance(index, Strategy):
             return self.profile.getitem_Strategy((<Strategy>index).strategy)
         elif isinstance(index, Player):
-            class mixed_profile_shim:
-                def __init__(self, parent, player):
-                    self.parent = parent
+            class MixedStrategy(object):
+                def __init__(self, profile, player):
+                    self.profile = profile
                     self.player = player
-
                 def __len__(self):
-                    return self.parent.profile.MixedProfileLength()
-
+                    return len(self.player.strategies)
                 def __repr__(self):
-                    return str(list(self.parent[self.player]))
-
+                    return str(list(self.profile[self.player]))
                 def __getitem__(self, index):
                     return self.parent[self.player.strategies[index]]
-                
                 def __setitem__(self, index, value):
                     self.parent[self.player.strategies[index]] = value
-
-            temp = mixed_profile_shim(self, index)
-
-            return temp
-            #return [ self[s] for s in index.strategies ]
+            return MixedStrategy(self, index)
         elif isinstance(index, str):
-            # check to see if string is referring to a player
-            if len([item for strategy_list in 
-                     [y for y in [x.strategies for x in self.game.players]] 
-                     for item in strategy_list if item.label == index]) == 1:
-                return self[[item for strategy_list in 
-                           [y for y in [x.strategies for x in self.game.players]] 
-                           for item in strategy_list if item.label == index][0]]
-            else:
-                return self[self.game.players[index]]
-            raise IndexError, "Player or player's strategy label does note exist"
+            return self[self._resolve_index(index, players=True)]
         else:
-            raise TypeError, "unexpected type passed to __getitem__ on strategy profile"
-
-
+            raise TypeError("profile indexes must be int, str, Player, or Strategy, not %s" %
+                            index.__class__.__name__)
 
     def __setitem__(self, index, value):
         if isinstance(index, int):
@@ -60,19 +65,7 @@ cdef class MixedStrategyProfileDouble:
             setitem_MixedStrategyProfileDouble_Strategy(self.profile, 
                                                         (<Strategy>index).strategy, value)
         elif isinstance(index, str):
-           # check to see if string is referring to a player
-            found_strategy = [item for strategy_list in 
-                             [y for y in [x.strategies for x in self.game.players]] 
-                             for item in strategy_list if item.label == index]
-            if len(found_strategy) == 1:
-                setitem_MixedStrategyProfileDouble_Strategy(self.profile, 
-                                                           (<Strategy>
-                                                            found_strategy[0])
-                                                            .strategy, value)
-            else:
-                raise IndexError, "Strategy not found in any players"
-        else:
-            raise TypeError, "unexpected type passed to __getitem__ on strategy profile"
+            self[self._resolve_index(index)] = value
 
     def __richcmp__(MixedStrategyProfileDouble self, other, whichop):
         if whichop == 0:
@@ -96,32 +89,28 @@ cdef class MixedStrategyProfileDouble:
             return g
 
     def payoff(self, player):
-        cdef Player p
-        p = Player()
-        
         if isinstance(player, Player):
-            p = player
-            return self.profile.GetPayoff(p.player)
-        elif isinstance(player, str):
+            return self.profile.GetPayoff((<Player>player).player)
+        elif isinstance(player, (int, str)):
             return self.payoff(self.game.players[player])
-        raise TypeError, "Must be of type Player or str"
+        raise TypeError("profile payoffs index must be int, str, or Player, not %s" %
+                        player.__class__.__name__)
 
     def strategy_value(self, strategy):
-        cdef Strategy s
-        s = Strategy()
-        
-        if isinstance(strategy, Strategy):
-            s = strategy
-            return self.profile.GetStrategyValue(s.strategy)
-        elif isinstance(strategy, str):
-            return self.strategy_value(
-                       [item for strategy_list in 
-                       [y for y in [x.strategies for x in self.game.players]] 
-                       for item in strategy_list if item.label == strategy][0])
+        if isinstance(strategy, str):
+            strategy = self._resolve_index(strategy, players=False)
+        elif not isinstance(strategy, Strategy):
+            raise TypeError("profile strategy value index must be str or Strategy, not %s" %
+                            strategy.__class__.__name__)
+        return self.profile.GetStrategyValue((<Strategy>strategy).strategy)
+
             
     def strategy_values(self, player):
         if isinstance(player, str):
             player = self.game.players[player]
+        elif not isinstance(player, Player):
+            raise TypeError("strategy values index must be str or Player, not %s" %
+                            player.__class__.__name__)
         return [self.strategy_value(item) for item in player.strategies]
 
     def liap_value(self):
