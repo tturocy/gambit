@@ -10,6 +10,29 @@ cdef class MixedStrategyProfileDouble:
     def __repr__(self):
         return str(list(self))
 
+    def _resolve_index(self, index, players=True):
+        # Given a string index, resolve into a player or strategy object.
+        if players:
+            try:
+                # first check to see if string is referring to a player
+                return self[self.game.players[index]]
+            except IndexError:
+                pass
+	# if no player matches, check strategy labels
+        strategies = reduce(lambda x,y: x+y,
+                            [ list(p.strategies) 
+                              for p in self.game.players ])
+        matches = filter(lambda x: x.label==index, strategies)
+        if len(matches) == 1:
+            return matches[0]
+        elif len(matches) == 0:
+            if players:
+                raise IndexError("no player or strategy matching label '%s'" % index)
+            else:
+                raise IndexError("no strategy matching label '%s'" % index)
+        else:
+            raise IndexError("multiple strategies matching label '%s'" % index)
+
     def __getitem__(self, index):
         if isinstance(index, int):
             return self.profile.getitem_int(index+1)
@@ -30,21 +53,7 @@ cdef class MixedStrategyProfileDouble:
                     self.parent[self.player.strategies[index]] = value
             return MixedStrategy(self, index)
         elif isinstance(index, str):
-            try:
-                # first check to see if string is referring to a player
-                return self[self.game.players[index]]
-            except IndexError:
-                pass
-            # if no player matches, check strategy labels
-            strategies = reduce(lambda x,y: x+y,
-                                [ p.strategies for p in self.game.players ])
-            matches = filter(lambda x: x.label==index, strategies)
-            if len(matches) == 1:
-                return self[matches[0]]
-            elif len(matches) == 0:
-                raise IndexError("no player or strategy matching label '%s'" % index)
-            else:
-                raise IndexError("multiple strategies matching label '%s'" % index)
+            return self[self._resolve_index(index, players=True)]
         else:
             raise TypeError("profile indexes must be int, str, Player, or Strategy, not %s" %
                             index.__class__.__name__)
@@ -56,21 +65,7 @@ cdef class MixedStrategyProfileDouble:
             setitem_MixedStrategyProfileDouble_Strategy(self.profile, 
                                                         (<Strategy>index).strategy, value)
         elif isinstance(index, str):
-            strategies = reduce(lambda x,y: x+y,
-                                [ p.strategies for p in self.game.players ])
-            matches = filter(lambda x: x.label==index, strategies)
-            if len(matches) == 1:
-                setitem_MixedStrategyProfileDouble_Strategy(self.profile, 
-                                                           (<Strategy>
-                                                            matches[0])
-                                                            .strategy, value)
-            elif len(matches) == 0:
-                raise IndexError("no player or strategy matching label '%s'" % index)
-            else:
-                raise IndexError("multiple strategies matching label '%s'" % index)
-        else:
-            raise TypeError("profile indexes must be int, str, or Strategy, not %s" %
-                            index.__class__.__name__)
+            self[self._resolve_index(index)] = value
 
     def __richcmp__(MixedStrategyProfileDouble self, other, whichop):
         if whichop == 0:
@@ -102,22 +97,13 @@ cdef class MixedStrategyProfileDouble:
                         player.__class__.__name__)
 
     def strategy_value(self, strategy):
-        if isinstance(strategy, Strategy):
-            return self.profile.GetStrategyValue((<Strategy>strategy).strategy)
-        elif isinstance(strategy, str):
-            strategies = reduce(lambda x,y: x+y,
-                                [ list(p.strategies)
-                                  for p in self.game.players ])
-            matches = filter(lambda x: x.label==strategy, strategies)
-            if len(matches) == 1:
-                return self.strategy_value(matches[0])
-            elif len(matches) == 0:
-                raise IndexError("no strategy matching label '%s'" % strategy)
-            else:
-                raise IndexError("multiple strategies matching label '%s'" % strategy)
-        else:
-           raise TypeError("strategy values index must be str or Strategy, not %s" %
-                           strategy.__class__.__name__)
+        if isinstance(strategy, str):
+            strategy = self._resolve_index(strategy, players=False)
+        elif not isinstance(strategy, Strategy):
+            raise TypeError("profile strategy value index must be str or Strategy, not %s" %
+                            strategy.__class__.__name__)
+        return self.profile.GetStrategyValue((<Strategy>strategy).strategy)
+
             
     def strategy_values(self, player):
         if isinstance(player, str):
