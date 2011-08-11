@@ -1,14 +1,18 @@
-cdef class MixedStrategyProfileDouble:
-    cdef c_MixedStrategyProfileDouble *profile
-
-    def __dealloc__(self):
-        del_MixedStrategyProfileDouble(self.profile)
-
-    def __len__(self):
-        return self.profile.MixedProfileLength()
-
-    def __repr__(self):
-        return str(list(self))
+cdef class MixedStrategyProfile(object):
+    def __repr__(self):    return str(list(self))
+    def __richcmp__(MixedStrategyProfileDouble self, other, whichop):
+        if whichop == 0:
+            return list(self) < list(other)
+        elif whichop == 1:
+            return list(self) <= list(other)
+        elif whichop == 2:
+            return list(self) == list(other)
+        elif whichop == 3:
+            return list(self) != list(other)
+        elif whichop == 4:
+            return list(self) > list(other)
+        else:
+            return list(self) >= list(other)
 
     def _resolve_index(self, index, players=True):
         # Given a string index, resolve into a player or strategy object.
@@ -35,9 +39,9 @@ cdef class MixedStrategyProfileDouble:
 
     def __getitem__(self, index):
         if isinstance(index, int):
-            return self.profile.getitem_int(index+1)
+            return self._getprob(index+1)
         elif isinstance(index, Strategy):
-            return self.profile.getitem_Strategy((<Strategy>index).strategy)
+            return self._getprob((<Strategy>index).strategy.deref().GetId())
         elif isinstance(index, Player):
             class MixedStrategy(object):
                 def __init__(self, profile, player):
@@ -60,37 +64,15 @@ cdef class MixedStrategyProfileDouble:
 
     def __setitem__(self, index, value):
         if isinstance(index, int):
-            setitem_MixedStrategyProfileDouble_int(self.profile, index+1, value)
+            self._setprob(index+1, value)
         elif isinstance(index, Strategy):
-            setitem_MixedStrategyProfileDouble_Strategy(self.profile, 
-                                                        (<Strategy>index).strategy, value)
+            self._setprob((<Strategy>index).strategy.deref().GetId(), value)
         elif isinstance(index, str):
             self[self._resolve_index(index)] = value
 
-    def __richcmp__(MixedStrategyProfileDouble self, other, whichop):
-        if whichop == 0:
-            return list(self) < list(other)
-        elif whichop == 1:
-            return list(self) <= list(other)
-        elif whichop == 2:
-            return list(self) == list(other)
-        elif whichop == 3:
-            return list(self) != list(other)
-        elif whichop == 4:
-            return list(self) > list(other)
-        else:
-            return list(self) >= list(other)
-
-    property game:
-        def __get__(self):
-            cdef Game g
-            g = Game()
-            g.game = self.profile.GetGame()
-            return g
-
     def payoff(self, player):
         if isinstance(player, Player):
-            return self.profile.GetPayoff((<Player>player).player)
+            return self._payoff(player)
         elif isinstance(player, (int, str)):
             return self.payoff(self.game.players[player])
         raise TypeError("profile payoffs index must be int, str, or Player, not %s" %
@@ -102,8 +84,7 @@ cdef class MixedStrategyProfileDouble:
         elif not isinstance(strategy, Strategy):
             raise TypeError("profile strategy value index must be str or Strategy, not %s" %
                             strategy.__class__.__name__)
-        return self.profile.GetStrategyValue((<Strategy>strategy).strategy)
-
+        return self._strategy_value(strategy)
             
     def strategy_values(self, player):
         if isinstance(player, str):
@@ -113,5 +94,63 @@ cdef class MixedStrategyProfileDouble:
                             player.__class__.__name__)
         return [self.strategy_value(item) for item in player.strategies]
 
+
+cdef class MixedStrategyProfileDouble(MixedStrategyProfile):
+    cdef c_MixedStrategyProfileDouble *profile
+
+    def __dealloc__(self):
+        del_MixedStrategyProfileDouble(self.profile)
+    def __len__(self):
+        return self.profile.MixedProfileLength()
+
+    def _getprob(self, int index):
+        return self.profile.getitem(index)
+    def _setprob(self, int index, value):
+        setitem_MixedStrategyProfileDouble(self.profile, index, value)
+    def _payoff(self, Player player):
+        return self.profile.GetPayoff(player.player)
+    def _strategy_value(self, Strategy strategy):
+        return self.profile.GetStrategyValue(strategy.strategy)
     def liap_value(self):
         return self.profile.GetLiapValue()
+
+    property game:
+        def __get__(self):
+            cdef Game g
+            g = Game()
+            g.game = self.profile.GetGame()
+            return g
+
+
+cdef class MixedStrategyProfileRational(MixedStrategyProfile):
+    cdef c_MixedStrategyProfileRational *profile
+
+    def __dealloc__(self):
+        del_MixedStrategyProfileRational(self.profile)
+    def __len__(self):
+        return self.profile.MixedProfileLength()
+
+    def _getprob(self, int index):
+        return fractions.Fraction(rat_str(self.profile.getitem(index)).c_str()) 
+    def _setprob(self, int index, value):
+        cdef char *s
+        if not isinstance(value, (int, fractions.Fraction)):
+            raise TypeError("rational precision profile requires int or Fraction probability, not %s" %
+                            value.__class__.__name__)
+        t = str(value)
+        s = t
+        setitem_MixedStrategyProfileRational(self.profile, index, s)
+    def _payoff(self, Player player):
+        return fractions.Fraction(rat_str(self.profile.GetPayoff(player.player)).c_str())
+    def _strategy_value(self, Strategy strategy):
+        return fractions.Fraction(rat_str(self.profile.GetStrategyValue(strategy.strategy)).c_str())
+    def liap_value(self):
+        return fractions.Fraction(rat_str(self.profile.GetLiapValue()).c_str())
+	
+    property game:
+        def __get__(self):
+            cdef Game g
+            g = Game()
+            g.game = self.profile.GetGame()
+            return g
+
