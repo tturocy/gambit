@@ -154,6 +154,7 @@ cdef extern from "libgambit/mixed.h":
         double getitem "operator[]"(int) except +IndexError
         double GetPayoff(c_GamePlayer)
         double GetStrategyValue(c_GameStrategy)
+        double GetPayoffDeriv(int, c_GameStrategy, c_GameStrategy)
         double GetLiapValue()
     c_MixedStrategyProfileDouble *new_MixedStrategyProfileDouble "new MixedStrategyProfile<double>"(c_Game)
     void del_MixedStrategyProfileDouble "delete"(c_MixedStrategyProfileDouble *)
@@ -164,6 +165,7 @@ cdef extern from "libgambit/mixed.h":
         c_Rational getitem "operator[]"(int) except +IndexError
         c_Rational GetPayoff(c_GamePlayer)
         c_Rational GetStrategyValue(c_GameStrategy)
+        c_Rational GetPayoffDeriv(int, c_GameStrategy, c_GameStrategy)
         c_Rational GetLiapValue()
     c_MixedStrategyProfileRational *new_MixedStrategyProfileRational "new MixedStrategyProfile<Rational>"(c_Game)
     void del_MixedStrategyProfileRational "delete"(c_MixedStrategyProfileRational *)

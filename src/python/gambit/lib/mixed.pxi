@@ -94,6 +94,24 @@ cdef class MixedStrategyProfile(object):
                             player.__class__.__name__)
         return [self.strategy_value(item) for item in player.strategies]
 
+    def strategy_value_deriv(self, player, strategy1, strategy2):
+        if isinstance(player, (int, str)):
+            player = self.game.players[player]
+        elif not isinstance(player, Player):
+            raise TypeError("player index must be int, str, or Player, not %s" %
+                            player.__class__.__name__)
+        if isinstance(strategy1, str):
+            strategy1 = self._resolve_index(strategy1, players=False)
+        elif not isinstance(strategy1, Strategy):
+            raise TypeError("profile strategy index must be str or Strategy, not %s" %
+                            strategy1.__class__.__name__)
+        if isinstance(strategy2, str):
+            strategy2 = self._resolve_index(strategy2, players=False)
+        elif not isinstance(strategy2, Strategy):
+            raise TypeError("profile strategy index must be str or Strategy, not %s" %
+                            strategy2.__class__.__name__)
+        return self._strategy_value_deriv((<Player>player).player.deref().GetNumber(), strategy1, strategy2)
+
 
 cdef class MixedStrategyProfileDouble(MixedStrategyProfile):
     cdef c_MixedStrategyProfileDouble *profile
@@ -111,6 +129,9 @@ cdef class MixedStrategyProfileDouble(MixedStrategyProfile):
         return self.profile.GetPayoff(player.player)
     def _strategy_value(self, Strategy strategy):
         return self.profile.GetStrategyValue(strategy.strategy)
+    def _strategy_value_deriv(self, int pl,
+                              Strategy s1, Strategy s2):
+        return self.profile.GetPayoffDeriv(pl, s1.strategy, s2.strategy)
     def liap_value(self):
         return self.profile.GetLiapValue()
 
@@ -144,6 +165,9 @@ cdef class MixedStrategyProfileRational(MixedStrategyProfile):
         return fractions.Fraction(rat_str(self.profile.GetPayoff(player.player)).c_str())
     def _strategy_value(self, Strategy strategy):
         return fractions.Fraction(rat_str(self.profile.GetStrategyValue(strategy.strategy)).c_str())
+    def _strategy_value_deriv(self, int pl,
+                              Strategy s1, Strategy s2):
+        return fractions.Fraction(rat_str(self.profile.GetPayoffDeriv(pl, s1.strategy, s2.strategy)).c_str())
     def liap_value(self):
         return fractions.Fraction(rat_str(self.profile.GetLiapValue()).c_str())
 	
