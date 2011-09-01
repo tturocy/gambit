@@ -1,6 +1,6 @@
 cdef class MixedStrategyProfile(object):
     def __repr__(self):    return str(list(self))
-    def __richcmp__(MixedStrategyProfileDouble self, other, whichop):
+    def __richcmp__(MixedStrategyProfile self, other, whichop):
         if whichop == 0:
             return list(self) < list(other)
         elif whichop == 1:
@@ -19,23 +19,24 @@ cdef class MixedStrategyProfile(object):
         if players:
             try:
                 # first check to see if string is referring to a player
-                return self[self.game.players[index]]
+                return self.game.players[index]
             except IndexError:
                 pass
-	# if no player matches, check strategy labels
-        strategies = reduce(lambda x,y: x+y,
-                            [ list(p.strategies) 
-                              for p in self.game.players ])
-        matches = filter(lambda x: x.label==index, strategies)
-        if len(matches) == 1:
-            return matches[0]
-        elif len(matches) == 0:
-            if players:
-                raise IndexError("no player or strategy matching label '%s'" % index)
-            else:
-                raise IndexError("no strategy matching label '%s'" % index)
         else:
-            raise IndexError("multiple strategies matching label '%s'" % index)
+            # if no player matches, check strategy labels
+            strategies = reduce(lambda x,y: x+y,
+                                [ list(p.strategies) 
+                                  for p in self.game.players ])
+            matches = filter(lambda x: x.label==index, strategies)
+            if len(matches) == 1:
+                return matches[0]
+            elif len(matches) == 0:
+                if players:
+                    raise IndexError("no player or strategy matching label '%s'" % index)
+                else:
+                    raise IndexError("no strategy matching label '%s'" % index)
+            else:
+                raise IndexError("multiple strategies matching label '%s'" % index)
 
     def __getitem__(self, index):
         if isinstance(index, int):
@@ -47,14 +48,16 @@ cdef class MixedStrategyProfile(object):
                 def __init__(self, profile, player):
                     self.profile = profile
                     self.player = player
+                def __eq__(self, other):
+                    return list(self) == list(other)
                 def __len__(self):
                     return len(self.player.strategies)
                 def __repr__(self):
                     return str(list(self.profile[self.player]))
                 def __getitem__(self, index):
-                    return self.parent[self.player.strategies[index]]
+                    return self.profile[self.player.strategies[index]]
                 def __setitem__(self, index, value):
-                    self.parent[self.player.strategies[index]] = value
+                    self.profile[self.player.strategies[index]] = value
             return MixedStrategy(self, index)
         elif isinstance(index, str):
             return self[self._resolve_index(index, players=True)]
@@ -170,7 +173,7 @@ cdef class MixedStrategyProfileRational(MixedStrategyProfile):
         return fractions.Fraction(rat_str(self.profile.GetPayoffDeriv(pl, s1.strategy, s2.strategy)).c_str())
     def liap_value(self):
         return fractions.Fraction(rat_str(self.profile.GetLiapValue()).c_str())
-	
+    
     property game:
         def __get__(self):
             cdef Game g
