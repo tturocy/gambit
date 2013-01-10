@@ -15,10 +15,11 @@ class SymmetricLPSolver(object):
     def construct_lp(self, game):
         problem = pulp.LpProblem("problem", pulp.LpMaximize)
         var = [ pulp.LpVariable("p%d" % i, 0)
-                for i in xrange(len(game.players[0].strategies)) ]
+                for (i, s) in enumerate(game.players[0].strategies) ]
         problem += sum(var)
+        minpay = game.min_payoff
         for s in game.players[0].strategies:
-            problem += (pulp.lpDot([ game[s,t][0] for t in game.players[1].strategies ], var) <= 1)
+            problem += (pulp.lpDot([ game[s,t][0]-minpay for t in game.players[1].strategies ], var) <= 1)
         return (problem, var)
 
     def solve_one(self, game):
