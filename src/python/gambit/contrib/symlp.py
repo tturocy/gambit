@@ -20,7 +20,6 @@ class SymmetricLPSolver(object):
         minpay = min(game.min_payoff, 0)
         for s in game.players[0].strategies:
             problem += (pulp.lpDot([ game[s,t][0]-minpay for t in game.players[1].strategies ], var) <= 1)
-        print problem
         return (problem, var)
 
     def solve_one(self, game):
@@ -48,26 +47,12 @@ def support_induction_solver(game, guess, stepsize=1):
             (time.strftime("%Y%m%dT%H%M%S"),
              len(restr.players[0].strategies))
         restr_eqm = solver.solve_one(restr)
-        print "Got solution back."
-
-        for player in restr.players:
-            print restr_eqm.payoff(player)
-            for (s, p) in zip(player.strategies, restr_eqm):
-                print "%-20s: %.6f %.6f" % (s.label,
-                                            p, restr_eqm.strategy_value(s))
-        print
-
         game_eqm = restr_eqm.unrestrict()
-        print list(game_eqm)
-        for player in game.players:
-            print game_eqm.payoff(player)
-            for (s, p) in zip(player.strategies, game_eqm):
-                print "%-20s: %.6f %.6f" % (s.label,
-                                            p, game_eqm.strategy_value(s))
-
         payoff = game_eqm.payoff(game.players[0])
         vals = [ (i, game_eqm.strategy_value(s))
                  for (i, s) in enumerate(game.players[0].strategies) ]
+        payoff = sum([ p*v
+                       for (p, (i, v)) in zip(game_eqm, vals) ])
         vals = filter(lambda x: x[1] >= payoff, vals)
         vals.sort(key=lambda x: -x[1])
         topK = [ x[0] for x in vals[:stepsize]]
