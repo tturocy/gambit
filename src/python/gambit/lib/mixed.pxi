@@ -75,6 +75,9 @@ cdef class MixedStrategyProfile(object):
             self._setprob_strategy(index, value)
         elif isinstance(index, str):
             self[self._resolve_index(index)] = value
+        else:
+            raise TypeError("profile indexes must be int, str or Strategy, not %s" %
+                            index.__class__.__name__)
 
     def payoff(self, player):
         if isinstance(player, Player):
@@ -138,13 +141,18 @@ cdef class MixedStrategyProfileDouble(MixedStrategyProfile):
     def _payoff(self, Player player):
         return self.profile.GetPayoff(player.player)
     def _strategy_value(self, Strategy strategy):
-        return self.profile.GetStrategyValue(strategy.strategy)
+        return self.profile.GetPayoff(strategy.strategy)
     def _strategy_value_deriv(self, int pl,
                               Strategy s1, Strategy s2):
         return self.profile.GetPayoffDeriv(pl, s1.strategy, s2.strategy)
 
     def liap_value(self):
         return self.profile.GetLiapValue()
+    def copy(self):
+        cdef MixedStrategyProfileDouble mixed
+        mixed = MixedStrategyProfileDouble()
+        mixed.profile = new c_MixedStrategyProfileDouble(deref(self.profile))
+        return mixed
     def as_behav(self):
         cdef MixedBehavProfileDouble behav
         if not self.game.is_tree:
@@ -199,17 +207,22 @@ cdef class MixedStrategyProfileRational(MixedStrategyProfile):
                             value.__class__.__name__)
         t = str(value)
         s = t
-        setitem_MixedStrategyProfileRationalStrategy(self.profile, strategy.strategy, value)
+        setitem_MixedStrategyProfileRationalStrategy(self.profile, strategy.strategy, s)
     def _payoff(self, Player player):
         return fractions.Fraction(rat_str(self.profile.GetPayoff(player.player)).c_str())
     def _strategy_value(self, Strategy strategy):
-        return fractions.Fraction(rat_str(self.profile.GetStrategyValue(strategy.strategy)).c_str())
+        return fractions.Fraction(rat_str(self.profile.GetPayoff(strategy.strategy)).c_str())
     def _strategy_value_deriv(self, int pl,
                               Strategy s1, Strategy s2):
         return fractions.Fraction(rat_str(self.profile.GetPayoffDeriv(pl, s1.strategy, s2.strategy)).c_str())
 
     def liap_value(self):
         return fractions.Fraction(rat_str(self.profile.GetLiapValue()).c_str())
+    def copy(self):
+        cdef MixedStrategyProfileRational mixed
+        mixed = MixedStrategyProfileRational()
+        mixed.profile = new c_MixedStrategyProfileRational(deref(self.profile))
+        return mixed
     def as_behav(self):
         cdef MixedBehavProfileRational behav
         if not self.game.is_tree:

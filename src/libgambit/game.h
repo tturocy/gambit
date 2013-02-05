@@ -575,9 +575,9 @@ public:
   template <class T> T GetPayoff(const GamePlayer &p_player) const
     { return GetPayoff<T>(p_player->GetNumber()); }
   /// Get the payoff to player pl conditional on reaching a node
-  template <class T> T GetNodeValue(const GameNode &, int pl) const;
+  template <class T> T GetPayoff(const GameNode &, int pl) const;
   /// Get the payoff to playing the action, conditional on the profile
-  template <class T> T GetActionValue(const GameAction &) const;
+  template <class T> T GetPayoff(const GameAction &) const;
   //@}
 };
 
@@ -597,6 +597,20 @@ protected:
   std::string m_title, m_comment;
 
   GameRep(void) { }
+
+protected:
+  /// @name Managing the representation
+  //@{
+  /// Renumber all game objects in a canonical way
+  virtual void Canonicalize(void) { }  
+  /// Clear out any computed values
+  virtual void ClearComputedValues(void) const { }
+  /// Build any computed values anew
+  virtual void BuildComputedValues(void) { }
+  /// Have computed values been built?
+  virtual bool HasComputedValues(void) const { return false; }
+  //@}
+
 
 public:
   /// @name Lifecycle
@@ -635,18 +649,6 @@ public:
   /// Returns true if the game is perfect recall
   virtual bool IsPerfectRecall(void) const
   { GameInfoset s, t; return IsPerfectRecall(s, t); }
-  //@}
-
-  /// @name Managing the representation
-  //@{
-  /// Renumber all game objects in a canonical way
-  virtual void Canonicalize(void) { }  
-  /// Clear out any computed values
-  virtual void ClearComputedValues(void) const { }
-  /// Build any computed values anew
-  virtual void BuildComputedValues(void) { }
-  /// Have computed values been built?
-  virtual bool HasComputedValues(void) const { return false; }
   //@}
 
   /// @name Writing data files
@@ -754,13 +756,13 @@ inline GameStrategyIterator GamePlayerRep::Strategies(void) const
 { m_game->BuildComputedValues(); return GameStrategyIterator(m_strategies); }
 
 template<> inline double PureBehavProfile::GetPayoff(int pl) const
-{ return GetNodeValue<double>(m_efg->GetRoot(), pl); }
+{ return GetPayoff<double>(m_efg->GetRoot(), pl); }
 
 template<> inline Rational PureBehavProfile::GetPayoff(int pl) const
-{ return GetNodeValue<Rational>(m_efg->GetRoot(), pl); }
+{ return GetPayoff<Rational>(m_efg->GetRoot(), pl); }
 
 template<> inline std::string PureBehavProfile::GetPayoff(int pl) const
-{ return lexical_cast<std::string>(GetNodeValue<Rational>(m_efg->GetRoot(), pl)); }
+{ return lexical_cast<std::string>(GetPayoff<Rational>(m_efg->GetRoot(), pl)); }
 
 //=======================================================================
 

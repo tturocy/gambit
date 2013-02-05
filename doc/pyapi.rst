@@ -891,6 +891,10 @@ API documentation
 
       :raises: :py:class:`gambit.UndefinedOperationError` if the game does not have a tree representation.
          
+   .. py:method:: copy()
+
+      Creates a copy of the mixed strategy profile.
+
    .. py:method:: payoff(player)
 
       Returns the expected payoff to ``player`` if all players play
@@ -937,28 +941,45 @@ API documentation
 
       Returns a behavior strategy profile as a :py:class:`BehavProfile` 
       object associated to the profile.
+
+   .. py:method:: belief(node)
+
+      Returns the probability ``node`` is reached, given its information 
+      set was reached.
+
+   .. py:method:: belief(infoset)
+
+      Returns a list of belief probabilities of each node in ``infoset``.
          
+   .. py:method:: copy()
+
+      Creates a copy of the behavior strategy profile.
+
    .. py:method:: payoff(player)
 
       Returns the expected payoff to ``player`` if all players play
       according to the profile.
 
-   .. py:method:: action_value(action)
+   .. py:method:: payoff(action)
 
       Returns the expected payoff to choosing ``action``, conditional
       on having reached the information set, if all
       other players play according to the profile.
 
-   .. py:method:: infoset_prob(infoset)
-
-      Returns the probability with which information set ``infoset``
-      is reached, if all players play according to the profile.
-
-   .. py:method:: infoset_value(infoset)
+   .. py:method:: payoff(infoset)
 
       Returns the expected payoff to the player who has the move at
       ``infoset``, conditional on the information set being reached,
       if all players play according to the profile.
+
+   .. py:method:: regret(action)
+
+      Returns the regret associated to ``action``.
+
+   .. py:method:: realiz_prob(infoset)
+
+      Returns the probability with which information set ``infoset``
+      is reached, if all players play according to the profile.
 
    .. py:method:: liap_value()
 
