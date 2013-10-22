@@ -11,7 +11,7 @@ construction and analysis of finite extensive and strategic games.
 Gambit is designed to be portable across platforms, and runs
 on Linux, Mac OS X, and Windows.
 
-Gambit provides:
+The Gambit Project provides:
 
 * A graphical user interface, based upon the wxWidgets library, 
   providing a common interface with native look-and-feel across 
@@ -19,6 +19,10 @@ Gambit provides:
 * A library of C++ source code for representing games, suitable for
   use in other applications.
 * A Python API for scripting applications.
+* A new browser-based user interface, the Game Theory Explorer (GTE),
+  for the input of extensive and strategic games.  For further details
+  see https://github.com/gambitproject/gte/wiki/_pages
+
 
 Using and citing Gambit
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,8 +35,8 @@ If you are citing Gambit in a paper, we suggest a citation of the form:
 
   McKelvey, Richard D., McLennan, Andrew M., and 
   `Turocy, Theodore L. <http://www.gambit-project.org/turocy>`__
-  (2010).
-  Gambit: Software Tools for Game Theory, Version 0.2010.09.01.
+  (2013).
+  Gambit: Software Tools for Game Theory, Version 14.0.0.
   http://www.gambit-project.org.
 
 Replace the version number and year as appropriate if you use a
@@ -53,6 +57,7 @@ Table of Contents
    build
    stata
    formats
+   pyapi
    biblio
    
 .. Indices and tables

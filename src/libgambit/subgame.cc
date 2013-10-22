@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/subgame.cc
 // Utilities for computing and verifying subgame-perfection
@@ -23,7 +23,7 @@
 #include "libgambit.h"
 #include "subgame.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace Gambit {
 
@@ -31,18 +31,6 @@ namespace Gambit {
 // A nested anonymous namespace to privatize these functions 
 
 namespace {
-
-///
-/// Returns a copy of the game 'p_efg', including only the subtree rooted
-/// at 'p_node'.
-///
-Game CopyGame(const Game &p_efg, const GameNode &p_node)
-{
-  std::ostringstream os;
-  p_efg->WriteEfgFile(os, p_node);
-  std::istringstream is(os.str());
-  return ReadGame(is);
-}
 
 ///
 /// Returns a list of the root nodes of all the immediate proper subgames
@@ -147,7 +135,7 @@ void SolveSubgames(const BehavSupport &p_support,
       subroots[i]->SetOutcome(subrootvalues[soln][i]);
     }
     
-    Game subgame = CopyGame(efg, n);
+    Game subgame = n->CopySubgame();
     // this prevents double-counting of outcomes at roots of subgames
     // by convention, we will just put the payoffs in the parent subgame
     subgame->GetRoot()->SetOutcome(0);
@@ -237,7 +225,7 @@ List<MixedBehavProfile<T> >
 SolveBySubgames(const BehavSupport &p_support,
 		SolverType p_solver)
 {
-  Game efg = CopyGame(p_support.GetGame(), p_support.GetGame()->GetRoot());
+  Game efg = p_support.GetGame()->GetRoot()->CopySubgame();
 
   for (int pl = 1; pl <= efg->NumPlayers(); pl++) {
     for (int iset = 1; iset <= efg->GetPlayer(pl)->NumInfosets(); iset++) {

@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/lcp/efglcp.cc
 // Implementation of algorithm to solve extensive forms using linear
@@ -21,7 +21,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <iostream>
 #include "libgambit/libgambit.h"
@@ -117,7 +117,7 @@ void PrintProfileDetail(std::ostream &p_stream,
 	sprintf(buffer, "%11s   ", lexical_cast<std::string>(p_profile(pl, iset, act), g_numDecimals).c_str());
 	p_stream << buffer;
 
-	sprintf(buffer, "%11s   ", lexical_cast<std::string>(p_profile.GetActionValue(infoset->GetAction(act)), g_numDecimals).c_str());
+	sprintf(buffer, "%11s   ", lexical_cast<std::string>(p_profile.GetPayoff(infoset->GetAction(act)), g_numDecimals).c_str());
 	p_stream << buffer;
 
 	p_stream << "\n";
@@ -198,7 +198,7 @@ void UndefinedToCentroid(MixedBehavProfile<T> &p_profile)
     for (int iset = 1; iset <= player->NumInfosets(); iset++) {
       GameInfoset infoset = player->GetInfoset(iset);
       
-      if (p_profile.GetInfosetProb(infoset) > (T) 0) {
+      if (p_profile.GetRealizProb(infoset) > (T) 0) {
 	continue;
       }
 	  
@@ -416,7 +416,7 @@ void SolveEfgLcp<T>::FillTableau(const BehavSupport &p_support, Matrix<T> &A,
       GameInfoset infoset = n->GetInfoset();
       for (int i = 1; i <= n->NumChildren(); i++) {
 	FillTableau(p_support, A, n->GetChild(i),
-		    Rational(prob) * infoset->GetActionProb<Rational>(i),
+		    Rational(prob) * infoset->GetActionProb(i, Rational(0)),
 		    s1,s2,i1,i2);
       }
     }

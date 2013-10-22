@@ -9,10 +9,6 @@
 // Licence:     wxWidgets licence
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "sheetedt.h"
-#endif
-
 #include "wx/wxprec.h"
 
 #ifdef __BORLANDC__
@@ -39,7 +35,7 @@
 #include "wx/tokenzr.h"
 #include "wx/spinctrl.h"
 // Required for wxIs... functions
-#include <ctype.h>
+#include <cctype>
 
 #define PRINT_RECT(s, b) wxPrintf(wxT("%s %d %d %d %d - w%d h%d\n"), wxT(s), b.GetTop(), b.GetLeft(), b.GetBottom(), b.GetRight(), b.GetWidth(), b.GetHeight());
 

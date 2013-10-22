@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/integer.cc
 // Implementation of an arbitrary-length integer class
@@ -36,16 +36,13 @@ Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 #include <iostream>
 
-#if defined(__GNUG__) && !defined(__APPLE_CC__)
-#pragma implementation
-#endif
 #include "integer.h"
-#include <ctype.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <assert.h>
-#include <string.h>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstring>
+#include "libgambit/libgambit.h"
 
 namespace Gambit {
 
@@ -174,7 +171,9 @@ void scpy(const unsigned short* src, unsigned short* dest,int nb)
 
 static inline void nonnil(const IntegerRep* rep)
 {
-  assert(rep != 0);
+  if (rep == 0) {
+    throw Gambit::NullException();
+  }
 }
 
 // allocate a new Irep. Pad to something close to a power of two.
@@ -186,7 +185,7 @@ static IntegerRep* Inew(int newlen)
   unsigned int allocsiz = MIN_INTREP_SIZE;
   while (allocsiz < siz) allocsiz <<= 1;  // find a power of 2
   allocsiz -= MALLOC_MIN_OVERHEAD;
-  assert((unsigned long) allocsiz < MAX_INTREP_SIZE * sizeof(short));
+  //assert((unsigned long) allocsiz < MAX_INTREP_SIZE * sizeof(short));
     
   IntegerRep* rep = (IntegerRep *) new char[allocsiz];
   rep->sz = (allocsiz - sizeof(IntegerRep) + sizeof(short)) / sizeof(short);
@@ -1229,8 +1228,9 @@ IntegerRep* div(const IntegerRep* x, const IntegerRep* y, IntegerRep* q)
   nonnil(y);
   int xl = x->len;
   int yl = y->len;
-  // if (yl == 0) (*lib_error_handler)("Integer", "attempted division by zero");
-  assert(yl != 0);
+  if (yl == 0) {
+    throw Gambit::ZeroDivideException();
+  }
 
   int comp = ucompare(x, y);
   int xsgn = x->sgn;
@@ -1281,8 +1281,9 @@ IntegerRep* div(const IntegerRep* x, long y, IntegerRep* q)
 {
   nonnil(x);
   int xl = x->len;
-  // if (y == 0) (*lib_error_handler)("Integer", "attempted division by zero");
-  assert(y != 0);
+  if (y == 0) {
+    throw Gambit::ZeroDivideException();
+  }
 
   unsigned short ys[SHORT_PER_LONG];
   unsigned long u;
@@ -1352,9 +1353,9 @@ void divide(const Integer& Ix, long y, Integer& Iq, long& rem)
   nonnil(x);
   IntegerRep* q = Iq.rep;
   int xl = x->len;
-  // if (y == 0) (*lib_error_handler)("Integer", "attempted division by zero");
-  assert(y != 0);
-
+  if (y == 0) {
+    throw Gambit::ZeroDivideException();
+  }
   unsigned short ys[SHORT_PER_LONG];
   unsigned long u;
   int ysgn = y >= 0;
@@ -1442,11 +1443,9 @@ void divide(const Integer& Ix, const Integer& Iy, Integer& Iq, Integer& Ir)
 
   int xl = x->len;
   int yl = y->len;
-  /* if (yl == 0)
-    (*lib_error_handler)("Integer", "attempted division by zero");
-  */
-  assert(yl != 0);
-
+  if (yl == 0) {
+    throw Gambit::ZeroDivideException();
+  }
   int comp = ucompare(x, y);
   int xsgn = x->sgn;
   int ysgn = y->sgn;
@@ -1513,7 +1512,9 @@ IntegerRep* mod(const IntegerRep* x, const IntegerRep* y, IntegerRep* r)
   int xl = x->len;
   int yl = y->len;
   // if (yl == 0) (*lib_error_handler)("Integer", "attempted division by zero");
-  assert(yl != 0);
+  if (yl == 0) {
+    throw Gambit::ZeroDivideException();
+  }
 
   int comp = ucompare(x, y);
   int xsgn = x->sgn;
@@ -1563,9 +1564,9 @@ IntegerRep* mod(const IntegerRep* x, long y, IntegerRep* r)
 {
   nonnil(x);
   int xl = x->len;
-  // if (y == 0) (*lib_error_handler)("Integer", "attempted division by zero");
-  assert(y != 0);
-
+  if (y == 0) {
+    throw Gambit::ZeroDivideException();
+  }
   unsigned short ys[SHORT_PER_LONG];
   unsigned long u;
   int ysgn = y >= 0;

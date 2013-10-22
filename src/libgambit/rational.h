@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/rational.h
 // Interface to a rational number class
@@ -26,13 +26,10 @@ Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 #ifndef LIBGAMBIT_RATIONAL_H
-#if defined(__GNUG__) && !defined(__APPLE_CC__)
-#pragma interface
-#endif
 #define LIBGAMBIT_RATIONAL_H
 
 #include "integer.h"
-#include <math.h>
+#include <cmath>
 
 namespace Gambit {
 
@@ -114,9 +111,7 @@ public:
   friend void      div(const Rational& x, const Rational& y, Rational& dest);
 
   // error detection
-
-  void    error(const char* msg) const;
-  int              OK() const;
+  bool OK(void) const;
 
 };
 

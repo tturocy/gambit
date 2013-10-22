@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/behavspt.cc
 // Implementation of supports for extensive forms
@@ -413,8 +413,8 @@ bool BehavSupport::Dominates(const GameAction &a, const GameAction &b,
 
   if (!p_conditional) {
     for (BehavIterator iter(*this, a); !iter.AtEnd(); iter++) {
-      Rational ap = iter->GetActionValue<Rational>(a);  
-      Rational bp = iter->GetActionValue<Rational>(b);
+      Rational ap = iter->GetPayoff<Rational>(a);
+      Rational bp = iter->GetPayoff<Rational>(b);
 
       if (p_strict) {
 	if (ap <= bp) {
@@ -450,8 +450,8 @@ bool BehavSupport::Dominates(const GameAction &a, const GameAction &b,
       
       for (BehavConditionalIterator iter(*this, reachable); 
 	   !iter.AtEnd(); iter++) {
-	Rational ap = iter->GetNodeValue<Rational>(nodelist[n]->GetChild(a->GetNumber()), pl);
-	Rational bp = iter->GetNodeValue<Rational>(nodelist[n]->GetChild(b->GetNumber()), pl);
+	Rational ap = iter->GetPayoff<Rational>(nodelist[n]->GetChild(a->GetNumber()), pl);
+	Rational bp = iter->GetPayoff<Rational>(nodelist[n]->GetChild(b->GetNumber()), pl);
 	
 	if (p_strict) {
 	  if (ap <= bp) {
@@ -649,9 +649,16 @@ void BehavSupport::DeactivateSubtree(const GameNode &n)
 			   n->GetInfoset()->GetNumber())) {
       deactivate(n->GetInfoset());
     }
-    Array<GameAction> actions(m_actions[n->GetInfoset()->GetPlayer()->GetNumber()][n->GetInfoset()->GetNumber()]);
-    for (int i = 1; i <= actions.Length(); i++) {
-      DeactivateSubtree(n->GetChild(actions[i]->GetNumber()));    
+    if (!n->GetPlayer()->IsChance()) {
+      Array<GameAction> actions(m_actions[n->GetInfoset()->GetPlayer()->GetNumber()][n->GetInfoset()->GetNumber()]);
+      for (int i = 1; i <= actions.Length(); i++) {
+	DeactivateSubtree(n->GetChild(actions[i]->GetNumber()));    
+      }
+    }
+    else {
+      for (int i = 1; i <= n->GetInfoset()->NumActions(); i++) {
+	DeactivateSubtree(n->GetChild(i));
+      }
     }
   }
 }

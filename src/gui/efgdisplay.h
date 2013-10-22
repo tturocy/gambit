@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/efgdisplay.h
 // Declaration of window class to display extensive form tree
@@ -45,7 +45,7 @@ public:
 
   bool IsEditing(void) const { return IsShown(); }
 
-  gbtNodeEntry *GetEntry(void) const { return m_entry; }
+  gbtNodeEntry *GetNodeEntry(void) const { return m_entry; }
   Gambit::GameOutcome GetOutcome(void) const { return m_outcome; }
   int GetPlayer(void) const { return m_player; }
  

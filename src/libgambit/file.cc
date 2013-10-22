@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/file.cc
 // Parser for reading game savefiles
@@ -20,8 +20,8 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
-#include <stdlib.h>
-#include <ctype.h>
+#include <cstdlib>
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -536,10 +536,10 @@ void ParseOutcomeBody(GameParserState &p_parser, GameRep *p_nfg)
 
     int outcomeId = atoi(p_parser.GetLastText().c_str());
     if (outcomeId > 0)  {
-      iter->SetOutcome(p_nfg->GetOutcome(outcomeId));
+      (*iter)->SetOutcome(p_nfg->GetOutcome(outcomeId));
     }
     else {
-      iter->SetOutcome(0);
+      (*iter)->SetOutcome(0);
     }
     p_parser.GetNextToken();
     iter++;
@@ -553,7 +553,7 @@ void ParsePayoffBody(GameParserState &p_parser, GameRep *p_nfg)
 
   while (p_parser.GetCurrentToken() != TOKEN_EOF) {
     if (p_parser.GetCurrentToken() == TOKEN_NUMBER) {
-      iter->GetOutcome()->SetPayoff(pl, p_parser.GetLastText());
+      (*iter)->GetOutcome()->SetPayoff(pl, p_parser.GetLastText());
     }
     else {
       throw InvalidFileException();
@@ -574,7 +574,7 @@ Game BuildNfg(GameParserState &p_parser, TableFileGame &p_data)
     dim[pl] = p_data.NumStrategies(pl);
   }
 
-  GameRep *nfg = new GameRep(dim);
+  GameRep *nfg = NewTable(dim);
   // Assigning this to the container assures that, if something goes
   // wrong, the class will automatically be cleaned up
   Game game = nfg;
@@ -947,17 +947,22 @@ Game ReadGame(std::istream &p_file) throw (InvalidFileException)
     }
     else if (parser.GetLastText() == "EFG") {
       TreeData treeData;
-      Game game(new GameRep);
+      Game game = NewTree();
       ParseEfg(parser, game, treeData);
-      game->Canonicalize();
       return game;
     }
+    else if (parser.GetLastText() == "#AGG") {
+      return GameAggRep::ReadAggFile(p_file);
+    }
+    else if (parser.GetLastText() == "#BAGG") {
+      return GameBagentRep::ReadBaggFile(p_file);
+    }
     else {
-      throw InvalidFileException();
+      throw InvalidFileException("Tokens 'EFG' or 'NFG' or '#AGG' or '#BAGG' expected at start of file");
     }
   }
-  catch (...) {
-    throw InvalidFileException();
+  catch (const std::exception &ex) {
+    throw InvalidFileException(ex.what());
   }
 }
 

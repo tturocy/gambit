@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/convert/nfg2html.cc
 // Convert a normal form game to HTML
@@ -21,8 +21,11 @@
 //
 
 #include <unistd.h>
-#include <stdlib.h>
+#include <getopt.h>
+#include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <cerrno>
 #include <iomanip>
 
 #include "libgambit/libgambit.h"
@@ -45,7 +48,7 @@ void WriteHtmlFile(std::ostream &p_file, const Gambit::Game &p_nfg,
 	theHtml += "<center><b>Player ";
 	theHtml += Gambit::lexical_cast<std::string>(pl);
 	theHtml += " Strategy ";
-	theHtml += Gambit::lexical_cast<std::string>(iter->GetStrategy(pl)->GetNumber());
+	theHtml += Gambit::lexical_cast<std::string>((*iter)->GetStrategy(pl)->GetNumber());
 	theHtml += "</b></center>";
       }
     }
@@ -60,18 +63,18 @@ void WriteHtmlFile(std::ostream &p_file, const Gambit::Game &p_nfg,
     } 
     theHtml += "</tr>";
     for (int st1 = 1; st1 <= p_nfg->GetPlayer(p_rowPlayer)->NumStrategies(); st1++) {
-      Gambit::PureStrategyProfile profile(*iter);
-      profile.SetStrategy(p_nfg->GetPlayer(p_rowPlayer)->GetStrategy(st1));
+      Gambit::PureStrategyProfile profile = (*iter)->Copy();
+      profile->SetStrategy(p_nfg->GetPlayer(p_rowPlayer)->GetStrategy(st1));
       theHtml += "<tr>";
       theHtml += "<td align=center><b>";
       theHtml += p_nfg->GetPlayer(p_rowPlayer)->GetStrategy(st1)->GetLabel();
       theHtml += "</b></td>";
       for (int st2 = 1; st2 <= p_nfg->GetPlayer(p_colPlayer)->NumStrategies(); st2++) {
-	profile.SetStrategy(p_nfg->GetPlayer(p_colPlayer)->GetStrategy(st2));
+	profile->SetStrategy(p_nfg->GetPlayer(p_colPlayer)->GetStrategy(st2));
 	theHtml += "<td align=center>";
 	for (int pl = 1; pl <= p_nfg->NumPlayers(); pl++) {
-	  if (profile.GetOutcome()) {
-	    theHtml += profile.GetOutcome()->GetPayoff<std::string>(pl);
+	  if (profile->GetOutcome()) {
+	    theHtml += profile->GetOutcome()->GetPayoff<std::string>(pl);
 	  }
 	  else {
 	    theHtml += "0";
@@ -96,22 +99,23 @@ void WriteHtmlFile(std::ostream &p_file, const Gambit::Game &p_nfg,
 void PrintBanner(std::ostream &p_stream)
 {
   p_stream << "Convert a Gambit .nfg file to HTML tables\n";
-  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2010, The Gambit Project\n";
+  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2013, The Gambit Project\n";
   p_stream << "This is free software, distributed under the GNU GPL\n\n";
 }
 
 void PrintHelp(char *progname)
 {
   PrintBanner(std::cerr);
-  std::cerr << "Usage: " << progname << " [OPTIONS]\n";
-  std::cerr << "Accepts strategic game on standard input.\n";
-  std::cerr << "Converts a Gambit .nfg file to HTML tables\n";
+  std::cerr << "Usage: " << progname << " [OPTIONS] [file]\n";
+  std::cerr << "If file is not specified, attempts to read game from standard input.\n";
+  std::cerr << "Converts a game to HTML tables\n";
 
   std::cerr << "Options:\n";
   std::cerr << "  -c PLAYER        the player to show on columns (default is 2)\n";
   std::cerr << "  -r PLAYER        the player to show on rows (default is 1)\n";
-  std::cerr << "  -h               print this help message\n";
+  std::cerr << "  -h, --help       print this help message\n";
   std::cerr << "  -q               quiet mode (suppresses banner)\n";
+  std::cerr << "  -v, --version    print version information\n";
   exit(1);
 }
 
@@ -122,8 +126,16 @@ int main(int argc, char *argv[])
   int rowPlayer = 1, colPlayer = 2;
   bool quiet = false;
 
-  while ((c = getopt(argc, argv, "r:c:hq")) != -1) {
+  int long_opt_index = 0;
+  struct option long_options[] = {
+    { "help", 0, NULL, 'h'   },
+    { "version", 0, NULL, 'v'  },
+    { 0,    0,    0,    0   }
+  };
+  while ((c = getopt_long(argc, argv, "r:c:hvq", long_options, &long_opt_index)) != -1) {
     switch (c) {
+    case 'v':
+      PrintBanner(std::cerr); exit(1);
     case 'r':
       rowPlayer = atoi(optarg);
       break;
@@ -156,6 +168,19 @@ int main(int argc, char *argv[])
   if (rowPlayer == colPlayer) {
     std::cerr << argv[0] << ": Row and column players must be different.\n";
     return 1;
+  }
+
+  std::istream* input_stream = &std::cin;
+  std::ifstream file_stream;
+  if (optind < argc) {
+    file_stream.open(argv[optind]);
+    if (!file_stream.is_open()) {
+      std::ostringstream error_message;
+      error_message << argv[0] << ": " << argv[optind];
+      perror(error_message.str().c_str());
+      exit(1);
+    }
+    input_stream = &file_stream;
   }
 
   Gambit::Game nfg;

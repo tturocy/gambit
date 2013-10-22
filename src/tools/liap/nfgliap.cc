@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/liap/nfgliap.cc
 // Compute Nash equilibria by minimizing Liapunov function
@@ -20,8 +20,8 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
+#include <cstdlib>
 #include <unistd.h>
-#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 
@@ -81,7 +81,7 @@ double NFLiapFunc::LiapDerivValue(int i1, int j1,
     psum = 0.0;
     for (j = 1; j <= p.GetSupport().NumStrategies(i); j++)  {
       psum += p[p.GetSupport().GetStrategy(i,j)];
-      x1 = p.GetStrategyValue(p.GetSupport().GetStrategy(i, j)) - p.GetPayoff(i);
+      x1 = p.GetPayoff(p.GetSupport().GetStrategy(i, j)) - p.GetPayoff(i);
       if (i1 == i) {
 	if (x1 > 0.0)
 	  x -= x1 * p.GetPayoffDeriv(i, p.GetSupport().GetStrategy(i1, j1));
@@ -173,7 +173,7 @@ void PrintProfile(std::ostream &p_stream,
 		  const Gambit::MixedStrategyProfile<double> &p_profile)
 {
   p_stream << p_label;
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     p_stream.setf(std::ios::fixed);
     p_stream << ", " << std::setprecision(g_numDecimals) << p_profile[i];
   }
@@ -184,13 +184,13 @@ void PrintProfile(std::ostream &p_stream,
 bool ReadProfile(std::istream &p_stream,
 		 Gambit::MixedStrategyProfile<double> &p_profile)
 {
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     if (p_stream.eof() || p_stream.bad()) {
       return false;
     }
 
     p_stream >> p_profile[i];
-    if (i < p_profile.Length()) {
+    if (i < p_profile.MixedProfileLength()) {
       char comma;
       p_stream >> comma;
     }
@@ -212,7 +212,7 @@ void SolveStrategic(const Gambit::Game &p_game)
     std::ifstream startPoints(startFile.c_str());
 
     while (!startPoints.eof() && !startPoints.bad()) {
-      Gambit::MixedStrategyProfile<double> start(p_game);
+      Gambit::MixedStrategyProfile<double> start(p_game->NewMixedStrategyProfile(0.0));
       if (ReadProfile(startPoints, start)) {
 	starts.Append(start);
       }
@@ -221,7 +221,7 @@ void SolveStrategic(const Gambit::Game &p_game)
   else {
     // Generate the desired number of points randomly
     for (int i = 1; i <= m_numTries; i++) {
-      Gambit::MixedStrategyProfile<double> start(p_game);
+      Gambit::MixedStrategyProfile<double> start(p_game->NewMixedStrategyProfile(0.0));
       PickRandomProfile(start);
       starts.Append(start);
     }
@@ -240,22 +240,24 @@ void SolveStrategic(const Gambit::Game &p_game)
 
     // if starting vector not interior, perturb it towards centroid
     int kk;
-    for (kk = 1; kk <= p.Length() && p[kk] > ALPHA; kk++);
-    if (kk <= p.Length()) {
-      Gambit::MixedStrategyProfile<double> centroid(p.GetSupport());
-      for (int k = 1; k <= p.Length(); k++) {
+    for (kk = 1; kk <= p.MixedProfileLength() && p[kk] > ALPHA; kk++);
+    if (kk <= p.MixedProfileLength()) {
+      Gambit::MixedStrategyProfile<double> centroid(p.GetSupport().NewMixedStrategyProfile<double>());
+      for (int k = 1; k <= p.MixedProfileLength(); k++) {
 	p[k] = centroid[k] * ALPHA + p[k] * (1.0-ALPHA);
       }
     }
 
-    gConjugatePR minimizer(p.Length());
-    Gambit::Vector<double> gradient(p.Length()), dx(p.Length());
+    gConjugatePR minimizer(p.MixedProfileLength());
+    Gambit::Vector<double> gradient(p.MixedProfileLength()), dx(p.MixedProfileLength());
     double fval;
-    minimizer.Set(F, p, fval, gradient, .01, .0001);
+    minimizer.Set(F, (const Gambit::Vector<double> &) p,
+		  fval, gradient, .01, .0001);
 
     try {
       for (int iter = 1; iter <= m_maxitsN; iter++) {
-	if (!minimizer.Iterate(F, p, fval, gradient, dx)) {
+	if (!minimizer.Iterate(F, (Gambit::Vector<double> &) p, 
+			       fval, gradient, dx)) {
 	  break;
 	}
 

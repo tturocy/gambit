@@ -8,10 +8,6 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "plotdraw.h"
-#endif
-
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
@@ -29,9 +25,9 @@
 #include "wx/plotctrl/plotdraw.h"
 #include "wx/plotctrl/plotmark.h"
 
-#include <math.h>
-#include <float.h>
-#include <limits.h>
+#include <cmath>
+#include <cfloat>
+#include <climits>
 
 // MSVC hogs global namespace with these min/max macros - remove them
 #ifdef max

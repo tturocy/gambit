@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/gambit.h
 // Declaration of application-level class for Gambit graphical interface
@@ -45,10 +45,10 @@ private:
 
 public:
   gbtApplication(void);
-  virtual ~gbtApplication();
+  virtual ~gbtApplication() { }
   
   const wxString &GetCurrentDir(void)  { return m_currentDir; }
-  void SetCurrentDir(const wxString &p_dir)  { m_currentDir = p_dir; }
+  void SetCurrentDir(const wxString &p_dir);
 
   wxString GetHistoryFile(int index) const
     { return m_fileHistory.GetHistoryFile(index); }
@@ -58,6 +58,9 @@ public:
   
 
   gbtAppLoadResult LoadFile(const wxString &);
+#ifdef __WXMAC__
+  void MacOpenFile(const wxString &filename)  { LoadFile(filename); }
+#endif  // __WXMAC__
 
   //!
   //! These manage the list of open documents

@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/logit/logbehav.h
 // Behavior strategy profile where action probabilities are represented using
@@ -79,7 +79,7 @@ protected:
   
   /// @name Auxiliary functions for computation of interesting values
   //@{
-  void GetPayoff(GameNodeRep *, const T &, int, T &) const;
+  void GetPayoff(GameTreeNodeRep *, const T &, int, T &) const;
   
   void ComputeSolutionDataPass2(const GameNode &node) const;
   void ComputeSolutionDataPass1(const GameNode &node) const;
@@ -124,7 +124,7 @@ public:
   T GetLogProb(const GameAction &p_action) const
     { if (p_action->GetInfoset()->GetPlayer()->GetNumber() == 0) {
 	GameInfoset infoset = p_action->GetInfoset();
-	return log(infoset->GetActionProb<T>(p_action->GetNumber()));
+	return log(infoset->GetActionProb(p_action->GetNumber(), (T) 0));
       }
       else {
 	return m_logProbs(p_action->GetInfoset()->GetPlayer()->GetNumber(),
@@ -181,12 +181,12 @@ public:
 
   const T &GetRealizProb(const GameNode &node) const;
   const T &GetBeliefProb(const GameNode &node) const;
-  Vector<T> GetNodeValue(const GameNode &node) const;
-  T GetInfosetProb(const GameInfoset &iset) const;
-  const T &GetInfosetValue(const GameInfoset &iset) const;
+  Vector<T> GetPayoff(const GameNode &node) const;
+  T GetRealizProb(const GameInfoset &iset) const;
+  const T &GetPayoff(const GameInfoset &iset) const;
   T GetActionProb(const GameAction &act) const;
   T GetLogActionProb(const GameAction &) const;
-  const T &GetActionValue(const GameAction &act) const;
+  const T &GetPayoff(const GameAction &act) const;
   const T &GetRegret(const GameAction &act) const;
 
   T DiffActionValue(const GameAction &action, 

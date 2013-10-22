@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/lcp/nfglcp.cc
 // Compute Nash equilibria via Lemke-Howson algorithm
@@ -20,7 +20,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <iostream>
 
@@ -55,7 +55,7 @@ void PrintProfile(std::ostream &p_stream,
 		  const MixedStrategyProfile<double> &p_profile)
 {
   p_stream << p_label;
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     p_stream.setf(std::ios::fixed);
     p_stream << "," << std::setprecision(g_numDecimals) << p_profile[i];
   }
@@ -68,7 +68,7 @@ void PrintProfile(std::ostream &p_stream,
 		  const MixedStrategyProfile<Rational> &p_profile)
 {
   p_stream << p_label;
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     p_stream << "," << p_profile[i];
   }
 
@@ -102,7 +102,7 @@ void PrintProfileDetail(std::ostream &p_stream,
       sprintf(buffer, "%11s   ", lexical_cast<std::string>(p_profile[strategy], g_numDecimals).c_str());
       p_stream << buffer;
 
-      sprintf(buffer, "%11s   ", lexical_cast<std::string>(p_profile.GetStrategyValue(strategy), g_numDecimals).c_str());
+      sprintf(buffer, "%11s   ", lexical_cast<std::string>(p_profile.GetPayoff(strategy), g_numDecimals).c_str());
       p_stream << buffer;
 
       p_stream << "\n";
@@ -135,7 +135,7 @@ bool OnBFS(const StrategySupport &p_support,
 
   p_list.Append(cbfs);
 
-  MixedStrategyProfile<T> profile(p_support);
+  MixedStrategyProfile<T> profile(p_support.NewMixedStrategyProfile<T>());
   int n1 = p_support.NumStrategies(1);
   int n2 = p_support.NumStrategies(2);
   T sum = (T) 0;

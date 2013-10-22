@@ -43,22 +43,22 @@ http://netlib2.cs.utk.edu/hompack/
 */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <setjmp.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>    /* some compilers will not need float.h */
-#include <limits.h>
-#include <time.h>
-#include <ctype.h>
+#include <cstdio>
+#include <cstdlib>
+#include <csetjmp>
+#include <cstring>
+#include <cmath>
+#include <cfloat>    /* some compilers will not need float.h */
+#include <climits>
+#include <ctime>
+#include <cctype>
 
 #ifndef qhDEFqhull
 #define qhDEFqhull 1
 
-#include <setjmp.h>
-#include <float.h>
-#include <time.h>
+#include <csetjmp>
+#include <cfloat>
+#include <ctime>
 
 /* ============ -types- ==================== */
 
@@ -623,8 +623,8 @@ setT   *qh_pointvertex (void /*qh.facet_list*/);
 void    qh_collectstatistics (void);
 void 	qh_freestatistics (void);
 void    qh_initstatistics (void);
-void    qh_printallstatistics (FILE *fp, char *string);
-void    qh_printstatistics (FILE *fp, char *string);
+void    qh_printallstatistics (FILE *fp, const char *string);
+void    qh_printstatistics (FILE *fp, const char *string);
 
 
 /* ======= -constants- ====================== 
@@ -1812,8 +1812,8 @@ void	qh_freestatistics (void);
 void    qh_initstatistics (void);
 boolT 	qh_newstats (int index, int *nextindex);
 boolT 	qh_nostatistic (int i);
-void    qh_printallstatistics (FILE *fp, char *string);
-void    qh_printstatistics (FILE *fp, char *string);
+void    qh_printallstatistics (FILE *fp, const char *string);
+void    qh_printstatistics (FILE *fp, const char *string);
 void  	qh_printstatlevel (FILE *fp, int id, int start);
 void  	qh_printstats (FILE *fp, int index, int *nextindex);
 realT   qh_stddev (int num, realT tot, realT tot2, realT *ave);

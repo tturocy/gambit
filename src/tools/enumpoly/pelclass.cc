@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/pelclass.cc
 // Implementation of interface to Pelican
@@ -29,6 +29,7 @@
 #include "complex.h"
 */
 
+inline double abs(double x) { return fabs(x); }
 
 /*************************************************************/
 /************** Implementation of class Pelview **************/

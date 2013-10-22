@@ -13,12 +13,22 @@ libtool
 *.la
 *.a
 gambit-*
-gambit
 game.wrap.cpp
 _build
 .DS_Store
-<<<<<<< HEAD
 .dirstamp
 *~
 *.plugin
 *.dta
+build
+*.egg-info
+*.pyc
+
+config.guess
+config.sub
+ltmain.sh
+gambit.exe
+gambit.msi
+gambit.wixobj
+gambit.wixpdb
+installer

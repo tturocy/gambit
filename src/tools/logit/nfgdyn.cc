@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/logit/nfgdyn.cc
 // Computation of stable quantal response equilibria via perturbed
@@ -21,11 +21,12 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
+#include <cstdlib>
+#include <cmath>
 #include <unistd.h>
-#include <stdlib.h>
-#include <math.h>
 #include <iostream>
 #include <fstream>
+#include <cerrno>
 #include <iomanip>
 #include "libgambit/libgambit.h"
 
@@ -57,7 +58,7 @@ void LogitBR(const Gambit::MixedStrategyProfile<double> &p_profile, double p_lam
     double sum = 0.0;
 
     for (int st = 1; st <= nfg->GetPlayer(pl)->NumStrategies(); st++) {
-      lval[st] = exp(p_lambda * p_profile.GetStrategyValue(nfg->GetPlayer(pl)->GetStrategy(st)));
+      lval[st] = exp(p_lambda * p_profile.GetPayoff(nfg->GetPlayer(pl)->GetStrategy(st)));
       sum += lval[st];
     }
 
@@ -89,7 +90,7 @@ void PrintProfile(std::ostream &p_stream,
 		  const Gambit::MixedStrategyProfile<double> &p_profile)
 {
   p_stream << p_label;
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     p_stream.setf(std::ios::fixed);
     p_stream << "," << std::setprecision(g_numDecimals) << p_profile[i];
   }
@@ -100,7 +101,7 @@ void PrintProfile(std::ostream &p_stream,
 double Distance(const Gambit::MixedStrategyProfile<double> &a, const Gambit::MixedStrategyProfile<double> &b)
 {
   double dist = 0.0;
-  for (int i = 1; i <= a.Length(); i++) {
+  for (int i = 1; i <= a.MixedProfileLength(); i++) {
     if (fabs(a[i] - b[i]) > dist) {
       dist = fabs(a[i] - b[i]);
     }
@@ -173,10 +174,23 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  std::istream* input_stream = &std::cin;
+  std::ifstream file_stream;
+  if (optind < argc) {
+    file_stream.open(argv[optind]);
+    if (!file_stream.is_open()) {
+      std::ostringstream error_message;
+      error_message << argv[0] << ": " << argv[optind];
+      perror(error_message.str().c_str());
+      exit(1);
+    }
+    input_stream = &file_stream;
+  }
+
   Gambit::Game nfg;
 
   try {
-    nfg = Gambit::ReadGame(std::cin);
+    nfg = Gambit::ReadGame(*input_stream);
   }
   catch (...) {
     return 1;
@@ -184,12 +198,12 @@ int main(int argc, char *argv[])
 
   if (startFile == "") {
     for (int i = 1; i <= stopAfter; i++) {
-      Gambit::MixedStrategyProfile<double> profile(nfg);
+      Gambit::MixedStrategyProfile<double> profile(nfg->NewMixedStrategyProfile(0.0));
       Randomize(profile);
       
       PrintProfile(std::cout, "start", profile);
 
-      Gambit::MixedStrategyProfile<double> br(nfg);
+      Gambit::MixedStrategyProfile<double> br(nfg->NewMixedStrategyProfile(0.0));
     
       double c_delta = .001;
       
@@ -207,8 +221,8 @@ int main(int argc, char *argv[])
     Gambit::Array<double> x(nfg->MixedProfileLength() + 1);
     std::ifstream startData(startFile.c_str());
     ReadProfile(startData, x);
-    Gambit::MixedStrategyProfile<double> profile(nfg);
-    for (int i = 1; i <= profile.Length(); i++) {
+    Gambit::MixedStrategyProfile<double> profile(nfg->NewMixedStrategyProfile(0.0));
+    for (int i = 1; i <= profile.MixedProfileLength(); i++) {
       profile[i] = x[i+1];
       if (profile[i] == 0.0) {
 	profile[i] = 0.0001;
@@ -217,7 +231,7 @@ int main(int argc, char *argv[])
     lambda = x[1];
     double c_delta = .001;
 
-    Gambit::MixedStrategyProfile<double> br(nfg);
+    Gambit::MixedStrategyProfile<double> br(nfg->NewMixedStrategyProfile(0.0));
     
     do {
       PrintProfile(std::cout, "step", profile);

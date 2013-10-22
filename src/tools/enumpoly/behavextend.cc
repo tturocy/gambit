@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/behavextend.cc
 // Algorithms for extending behavior profiles to Nash equilibria
@@ -221,7 +221,7 @@ NashNodeProbabilityPoly(const Gambit::MixedBehavProfile<double> &p_solution,
     Gambit::GameInfoset last_infoset = last_action->GetInfoset();
     
     if (last_infoset->IsChanceInfoset()) 
-      node_prob *= (double) last_infoset->GetActionProb<Gambit::Rational>(last_action->GetNumber());
+      node_prob *= (double) last_infoset->GetActionProb(last_action->GetNumber(), Gambit::Rational(0));
     else 
       if (dsupp.HasActiveActionAt(last_infoset)) {
 	if (last_infoset == iset) {
@@ -433,7 +433,7 @@ static bool ANFNodeProbabilityPoly(const Gambit::MixedBehavProfile<double> &p_so
     Gambit::GameInfoset last_infoset = last_action->GetInfoset();
     
     if (last_infoset->IsChanceInfoset()) 
-      node_prob *= (double) last_infoset->GetActionProb<Gambit::Rational>(last_action->GetNumber());
+      node_prob *= (double) last_infoset->GetActionProb(last_action->GetNumber(), Gambit::Rational(0));
     else 
       if (big_supp.HasActiveActionAt(last_infoset)) {
 	if (last_infoset == p_solution.GetGame()->GetPlayer(pl)->GetInfoset(i)) {

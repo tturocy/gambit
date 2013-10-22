@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enummixed/clique.h
 // Maximal cliques and connected components via von Stengel's algorithm
@@ -178,7 +178,7 @@
 #ifndef CLIQUE_H
 #define CLIQUE_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "libgambit/libgambit.h"
 
 using namespace Gambit;

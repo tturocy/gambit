@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/sfg.cc
 // Implementation of sequence form classes
@@ -115,7 +115,7 @@ MakeSequenceForm(const Gambit::GameNode &n, Gambit::Rational prob,Gambit::Array<
     if(n->GetPlayer()->IsChance()) {
       for(i=1;i<=n->NumChildren();i++)
 	MakeSequenceForm(n->GetChild(i),
-			 prob * n->GetInfoset()->GetActionProb<Gambit::Rational>(i), seq,iset,parent);
+			 prob * n->GetInfoset()->GetActionProb(i, Gambit::Rational(0)), seq,iset,parent);
     }
     else {
       int pl = n->GetPlayer()->GetNumber();

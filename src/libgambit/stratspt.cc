@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/stratspt.cc
 // Implementation of strategy classes for normal forms
@@ -65,6 +65,19 @@ int StrategySupport::MixedProfileLength(void) const
   for (int pl = 1; pl <= m_nfg->NumPlayers();
        total += m_support[pl++].Length());
   return total;
+}
+
+template<>
+MixedStrategyProfile<double> StrategySupport::NewMixedStrategyProfile(void) const
+{
+  return m_nfg->NewMixedStrategyProfile(0.0, *this);
+
+}
+
+template<>
+MixedStrategyProfile<Rational> StrategySupport::NewMixedStrategyProfile(void) const
+{
+  return m_nfg->NewMixedStrategyProfile(Rational(0), *this);
 }
 
 bool StrategySupport::IsSubsetOf(const StrategySupport &p_support) const
@@ -160,8 +173,8 @@ bool StrategySupport::Dominates(const GameStrategy &s,
   bool equal = true;
   
   for (StrategyIterator iter(*this); !iter.AtEnd(); iter++) {
-    Rational ap = iter->GetStrategyValue<Rational>(s);
-    Rational bp = iter->GetStrategyValue<Rational>(t);
+    Rational ap = (*iter)->GetStrategyValue(s);
+    Rational bp = (*iter)->GetStrategyValue(t);
     if (p_strict && ap <= bp) {
       return false;
     }
@@ -302,16 +315,16 @@ bool StrategySupport::Overwhelms(const GameStrategy &s,
 				 bool p_strict) const
 {
   StrategyIterator iter(*this);
-  Rational sMin = iter->GetStrategyValue<Rational>(s);
-  Rational tMax = iter->GetStrategyValue<Rational>(t);
+  Rational sMin = (*iter)->GetStrategyValue(s);
+  Rational tMax = (*iter)->GetStrategyValue(t);
 
   for (; !iter.AtEnd(); iter++) {
-    if (iter->GetStrategyValue<Rational>(s) < sMin) {
-      sMin = iter->GetStrategyValue<Rational>(s);
+    if ((*iter)->GetStrategyValue(s) < sMin) {
+      sMin = (*iter)->GetStrategyValue(s);
     }
     
-    if (iter->GetStrategyValue<Rational>(t) > tMax) { 
-      tMax = iter->GetStrategyValue<Rational>(t);
+    if ((*iter)->GetStrategyValue(t) > tMax) { 
+      tMax = (*iter)->GetStrategyValue(t);
     }
 
     if (sMin < tMax || (sMin == tMax && p_strict)) {

@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/gameframe.cc
 // Implementation of frame containing views of a game
@@ -277,25 +277,20 @@ gbtGameFrame::gbtGameFrame(wxWindow *p_parent, gbtGameDocument *p_doc)
   m_splitter = new wxSplitterWindow(this, -1);
   if (p_doc->IsTree()) {
     m_efgPanel = new gbtEfgPanel(m_splitter, p_doc);
+    m_efgPanel->Show(true);
+    m_splitter->Initialize(m_efgPanel);
+    m_nfgPanel = 0;
   }
   else {
     m_efgPanel = 0;
-  }
-
-  m_nfgPanel = new gbtNfgPanel(m_splitter, p_doc);
-  if (p_doc->IsTree()) {
-    m_nfgPanel->Show(false);
+    m_nfgPanel = new gbtNfgPanel(m_splitter, p_doc);
+    m_nfgPanel->Show(true);
+    m_splitter->Initialize(m_nfgPanel);
   }
 
   m_analysisPanel = new gbtAnalysisNotebook(m_splitter, p_doc);
   m_analysisPanel->Show(false);
 
-  if (p_doc->IsTree()) {
-    m_splitter->Initialize(m_efgPanel);
-  }
-  else {
-    m_splitter->Initialize(m_nfgPanel);
-  }
   m_splitter->SetSashGravity(0.5);
   m_splitter->SetMinimumPaneSize(200);
 
@@ -600,85 +595,180 @@ void gbtGameFrame::MakeToolbar(void)
   toolBar->SetMargins(4, 4);
   toolBar->SetToolBitmapSize(wxSize(24, 24));
 
-  toolBar->AddTool(GBT_MENU_FILE_NEW_EFG, wxBitmap(newtree_xpm),
-		   wxNullBitmap, false, -1, -1, 0,
-		   _("Create a new extensive (tree) game"),
-		   _("Create a new extensive (tree) game"));
-  toolBar->AddTool(GBT_MENU_FILE_NEW_NFG, wxBitmap(newtable_xpm),
-		   wxNullBitmap, false, -1, -1, 0,
-		   _("Create a new strategic (table) game"),
-		   _("Create a new strategic (table) game"));
-  toolBar->AddTool(wxID_OPEN, wxBitmap(open_xpm), wxNullBitmap, false,
-		   -1, -1, 0, _("Open a file"), _("Open a saved game"));
-  toolBar->AddTool(wxID_SAVE, wxBitmap(save_xpm), wxNullBitmap, false,
-		   -1, -1, 0, _("Save this game"), _("Save this game"));
-  toolBar->AddTool(wxID_SAVEAS, wxBitmap(saveas_xpm), wxNullBitmap, false,
-		   -1, -1, 0, _("Save to a different file"), 
-		   _("Save this game to another file"));
+  toolBar->AddTool(GBT_MENU_FILE_NEW_EFG, 
+                   wxEmptyString,
+                   wxBitmap(newtree_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+		               _("Create a new extensive (tree) game"),
+		               _("Create a new extensive (tree) game"),
+                   NULL);
+  toolBar->AddTool(GBT_MENU_FILE_NEW_NFG, 
+                   wxEmptyString,
+                   wxBitmap(newtable_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+		               _("Create a new strategic (table) game"),
+		               _("Create a new strategic (table) game"),
+                   NULL);
+  toolBar->AddTool(wxID_OPEN, 
+                   wxEmptyString,
+                   wxBitmap(open_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Open a file"),
+                   _("Open a file"),
+                   NULL);
+  toolBar->AddTool(wxID_SAVE,
+                   wxEmptyString,
+                   wxBitmap(save_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Save this game"), 
+                   _("Save this game"), 
+                   NULL);
+  toolBar->AddTool(wxID_SAVEAS, 
+                   wxEmptyString,
+                   wxBitmap(saveas_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Save to a different file"), 
+                   _("Save this game to another file"),
+                   NULL);
+
   toolBar->AddSeparator();
 
-  toolBar->AddTool(wxID_PRINT, wxBitmap(print_xpm), wxNullBitmap, false,
-		   -1, -1, 0, _("Print this game"), _("Print this game"));
-  toolBar->AddTool(wxID_PREVIEW, wxBitmap(preview_xpm), wxNullBitmap,
-		   false, -1, -1, 0, _("Print preview"),
-		   _("View a preview of the game printout"));
+  toolBar->AddTool(wxID_PRINT, 
+                   wxEmptyString,
+                   wxBitmap(print_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Print this game"),
+                   _("Print this game"),
+                   NULL);
+  toolBar->AddTool(wxID_PREVIEW, 
+                   wxEmptyString,
+                   wxBitmap(preview_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Print preview"),
+                   _("View a preview of the game printout"),
+                   NULL);
 
   toolBar->AddSeparator();
-  toolBar->AddTool(wxID_UNDO, wxBitmap(undo_xpm), wxNullBitmap,
-		   false, -1, -1, 0, _("Undo the last action"),
-		   _("Undo the last change to the game"));
-  toolBar->AddTool(wxID_REDO, wxBitmap(redo_xpm), wxNullBitmap,
-		   false, -1, -1, 0, _("Redo the undone action"),
-		   _("Redo the last undone change"));
+
+  toolBar->AddTool(wxID_UNDO, 
+                   wxEmptyString,
+                   wxBitmap(undo_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Undo the last action"),
+                   _("Undo the last change to the game"),
+                   NULL);
+  toolBar->AddTool(wxID_REDO, 
+                   wxEmptyString,
+                   wxBitmap(redo_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Redo the undone action"),
+                   _("Redo the last undone change"),
+                   NULL);
 
   toolBar->AddSeparator();
-  toolBar->AddTool(GBT_MENU_EDIT_NEWPLAYER, wxBitmap(newplayer_xpm),
-		   wxNullBitmap, false, -1, -1, 0,
-		   _("Add a new player"), _("Add a new player to the game"));
+
+  toolBar->AddTool(GBT_MENU_EDIT_NEWPLAYER, 
+                   wxEmptyString,
+                   wxBitmap(newplayer_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+                   _("Add a new player"),
+                   _("Add a new player to the game"),
+                   NULL);
   if (m_doc->IsTree()) {
-    toolBar->AddTool(GBT_MENU_VIEW_ZOOMIN, wxBitmap(zoomin_xpm), wxNullBitmap,
-		     false, -1, -1, 0, 
-		     _("Zoom in"), _("Increase magnification"));
-    toolBar->AddTool(GBT_MENU_VIEW_ZOOMOUT, wxBitmap(zoomout_xpm), wxNullBitmap,
-		     false, -1, -1, 0, 
-		     _("Zoom out"), _("Decrease magnification"));
-    toolBar->AddTool(GBT_MENU_VIEW_ZOOMFIT, wxBitmap(zoomfit_xpm), wxNullBitmap,
-		     false, -1, -1, 0, _("Fit to window"), 
-		     _("Set magnification to see entire tree"));
+    toolBar->AddTool(GBT_MENU_VIEW_ZOOMIN, 
+                     wxEmptyString,
+                     wxBitmap(zoomin_xpm), 
+                     wxNullBitmap,
+                     wxITEM_NORMAL, 
+                     _("Zoom in"),
+                     _("Increase magnification"),
+                     NULL);
+    toolBar->AddTool(GBT_MENU_VIEW_ZOOMOUT, 
+                     wxEmptyString,
+                     wxBitmap(zoomout_xpm), 
+                     wxNullBitmap,
+                     wxITEM_NORMAL, 
+                     _("Zoom out"),
+                     _("Decrease magnification"),
+                     NULL);
+    toolBar->AddTool(GBT_MENU_VIEW_ZOOMFIT, 
+                     wxEmptyString,
+                     wxBitmap(zoomfit_xpm), 
+                     wxNullBitmap,
+                     wxITEM_NORMAL, 
+                     _("Fit to window"),
+                     _("Set magnification to see entrie tree"),
+                     NULL);
   }
 
   toolBar->AddSeparator();
-  toolBar->AddTool(GBT_MENU_FORMAT_DECIMALS_ADD, wxBitmap(adddecimal_xpm),
-		   wxNullBitmap, false, -1, -1, 0, 
-		   _("Increase the number of decimals displayed"),
-		   _("Increase the number of decimal places shown"));
 
-  toolBar->AddTool(GBT_MENU_FORMAT_DECIMALS_DELETE, wxBitmap(deldecimal_xpm),
-		   wxNullBitmap, false, -1, -1, 0, 
-		   _("Decrease the number of decimals displayed"),
-		   _("Decrease the number of decimal places shown"));
+  toolBar->AddTool(GBT_MENU_FORMAT_DECIMALS_ADD, 
+                   wxEmptyString,
+                   wxBitmap(adddecimal_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+		               _("Increase the number of decimals displayed"),
+		               _("Increase the number of decimal places shown"),
+                   NULL);
+  toolBar->AddTool(GBT_MENU_FORMAT_DECIMALS_DELETE,
+                   wxEmptyString,
+                   wxBitmap(deldecimal_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+		               _("Decrease the number of decimals displayed"),
+		               _("Decrease the number of decimal places shown"),
+                   NULL);
 
   toolBar->AddSeparator();
+  
   if (m_doc->IsTree()) {
-    toolBar->AddTool(GBT_MENU_VIEW_STRATEGIC, wxBitmap(table_xpm),
-		     wxNullBitmap, true, -1, -1, 0, 
-		     wxT("Display the reduced strategic representation ")
-		       wxT("of the game"),
-		     wxT("Display the reduced strategic representation ")
-		       wxT("of the game"));
+    toolBar->AddTool(GBT_MENU_VIEW_STRATEGIC,
+                     wxEmptyString,
+                     wxBitmap(table_xpm), 
+                     wxNullBitmap,
+                     wxITEM_CHECK, 
+		                 _("Display the reduced strategic representation of the game"),
+		                 _("Display the reduced strategic representation of the game"),
+                     NULL);
   }
-  toolBar->AddTool(GBT_MENU_VIEW_PROFILES, wxBitmap(profiles_xpm),
-		   wxNullBitmap, true, -1, -1, 0, 
-		   _("View the list of computed strategy profiles"), 
-		   _("Show or hide the list of computed strategy profiles"));
-  toolBar->AddTool(GBT_MENU_TOOLS_EQUILIBRIUM, wxBitmap(calc_xpm),
-		   wxNullBitmap, false, -1, -1, 0, 
-		   _("Compute Nash equilibria of this game"),
-		   _("Compute Nash equilibria of this game"));
+  toolBar->AddTool(GBT_MENU_VIEW_PROFILES,
+                   wxEmptyString,
+                   wxBitmap(profiles_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+		               _("View the list of computed strategy profiles"), 
+		               _("Show or hide the list of computed strategy profiles"),
+                   NULL);
+  toolBar->AddTool(GBT_MENU_TOOLS_EQUILIBRIUM,
+                   wxEmptyString,
+                   wxBitmap(calc_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+		               _("Compute Nash equilibria of this game"),
+		               _("Compute Nash equilibria of this game"),
+                   NULL);
   
   toolBar->AddSeparator();
-  toolBar->AddTool(wxID_ABOUT, wxBitmap(about_xpm), wxNullBitmap, false,
-		   -1, -1, 0, _("About Gambit"), _("About Gambit"));
+
+  toolBar->AddTool(wxID_ABOUT,
+                   wxEmptyString,
+                   wxBitmap(about_xpm), 
+                   wxNullBitmap,
+                   wxITEM_NORMAL, 
+		               _("About Gambit"),
+		               _("About Gambit"),
+                   NULL);
 
   toolBar->Realize();
   toolBar->SetRows(1);
@@ -690,7 +780,7 @@ void gbtGameFrame::MakeToolbar(void)
 
 void gbtGameFrame::OnFileNewEfg(wxCommandEvent &)
 {
-  Gambit::Game efg = new Gambit::GameRep;
+  Gambit::Game efg = Gambit::NewTree();
   efg->SetTitle("Untitled Extensive Game");
   efg->NewPlayer()->SetLabel("Player 1");
   efg->NewPlayer()->SetLabel("Player 2");
@@ -703,7 +793,7 @@ void gbtGameFrame::OnFileNewNfg(wxCommandEvent &)
   Gambit::Array<int> dim(2);
   dim[1] = 2;
   dim[2] = 2;
-  Gambit::Game nfg = new Gambit::GameRep(dim);
+  Gambit::Game nfg = Gambit::NewTable(dim);
   nfg->SetTitle("Untitled Strategic Game");
   nfg->GetPlayer(1)->SetLabel("Player 1");
   nfg->GetPlayer(2)->SetLabel("Player 2");
@@ -722,10 +812,7 @@ void gbtGameFrame::OnFileOpen(wxCommandEvent &)
 
   if (dialog.ShowModal() == wxID_OK) {
     wxString filename = dialog.GetPath();
-
     wxGetApp().SetCurrentDir(wxPathOnly(filename));
-    wxConfig config(_T("Gambit"));
-    config.Write(_T("/General/CurrentDirectory"), wxPathOnly(filename));
 
     gbtAppLoadResult result = wxGetApp().LoadFile(filename);
     if (result == GBT_APP_OPEN_FAILED) {
@@ -1233,6 +1320,21 @@ void gbtGameFrame::OnViewStrategic(wxCommandEvent &p_event)
       }
     }
     
+    int ncont = m_doc->GetGame()->NumStrategyContingencies();
+    if (!m_nfgPanel && ncont >= 50000) {
+      if (wxMessageBox(wxString::Format(wxT("This game has %d contingencies in strategic form.\n"), ncont) +
+		       wxT("Performance in browsing strategic form will be poor,\n") +
+		       wxT("and may render the program nonresponsive.\n") +
+		       wxT("Do you wish to continue?"),
+		       _("Large strategic game warning"),
+		       wxOK | wxCANCEL | wxALIGN_CENTER, this) != wxOK) {
+	return;
+      }
+    }
+
+    if (!m_nfgPanel) {
+      m_nfgPanel = new gbtNfgPanel(m_splitter, m_doc);
+    }
     m_doc->BuildNfg();
 
     m_splitter->ReplaceWindow(m_efgPanel, m_nfgPanel);
@@ -1339,6 +1441,20 @@ void gbtGameFrame::OnToolsEquilibrium(wxCommandEvent &)
   gbtNashChoiceDialog dialog(this, m_doc);
 
   if (dialog.ShowModal() == wxID_OK) {
+    if (dialog.UseStrategic()) {
+      int ncont = m_doc->GetGame()->NumStrategyContingencies();
+      if (ncont >= 50000) {
+	if (wxMessageBox(wxString::Format(wxT("This game has %d contingencies in strategic form.\n"), ncont) +
+			 wxT("Performance in solving strategic form will be poor,\n") +
+			 wxT("and may render the program nonresponsive.\n") +
+			 wxT("Do you wish to continue?"),
+			 _("Large strategic game warning"),
+			 wxOK | wxCANCEL | wxALIGN_CENTER, this) != wxOK) {
+	  return;
+	}
+      }
+    }
+
     gbtAnalysisOutput *command = dialog.GetCommand();
 
     gbtNashMonitorDialog dialog(this, m_doc, command);

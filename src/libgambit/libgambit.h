@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/libgambit.h
 // Top-level include file for libgambit
@@ -23,6 +23,7 @@
 #ifndef LIBGAMBIT_H
 #define LIBGAMBIT_H
 
+#include <stdexcept>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -46,11 +47,12 @@ template <class D, class S> D lexical_cast(const S &p_value, int p_prec)
 //                        Exception classes
 //========================================================================
 
-/// A base class for all exceptions
-class Exception : public std::exception {
+/// A base class for all Gambit exceptions
+class Exception : public std::runtime_error {
 public:
+  Exception(void) : std::runtime_error("") { }
+  Exception(const char *s) : std::runtime_error(s) { }
   virtual ~Exception() throw() { }
-  virtual const char *what(void) const throw() = 0;
 };
 
 /// Exception thrown on out-of-range index
@@ -81,11 +83,25 @@ public:
   const char *what(void) const throw() { return "Invalid value"; }
 };
 
+/// Exception thrown on a failed assertion
+class AssertionException : public Exception {
+public:
+  AssertionException(const char *s) : Exception(s) { }
+  virtual ~AssertionException() throw() { }
+};
+
 /// Exception thrown on attempted division by zero
 class ZeroDivideException : public Exception {
 public:
   virtual ~ZeroDivideException() throw() { }
   const char *what(void) const throw()  { return "Attmpted division by zero"; }
+};
+
+/// An exception thrown when attempting to dereference a null pointer
+class NullException : public Exception {
+public:
+  virtual ~NullException() throw() { }
+  const char *what(void) const throw()  { return "Dereferencing null pointer"; }
 };
 
 } // end namespace Gambit

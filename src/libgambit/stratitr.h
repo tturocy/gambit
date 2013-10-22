@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/stratitr.h
 // Normal form iterator class
@@ -34,6 +34,7 @@ namespace Gambit {
 /// second constructor).
 class StrategyIterator {
   friend class GameRep;
+  friend class GameTableRep;
 private:
   bool m_atEnd;
   StrategySupport m_support;
@@ -71,8 +72,6 @@ public:
   PureStrategyProfile &operator*(void) { return m_profile; }
   /// Get the current strategy profile
   const PureStrategyProfile &operator*(void) const { return m_profile; }
-  /// Get the current strategy profile
-  PureStrategyProfile *const operator->(void) { return &m_profile; }
   //@}
 };
 

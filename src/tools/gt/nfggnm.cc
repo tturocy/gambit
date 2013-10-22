@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/gt/nfggnm.cc
 // Gambit frontend to Gametracer global Newton method
@@ -21,12 +21,15 @@
 //
 
 #include <unistd.h>
-#include <math.h>
+#include <getopt.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
+#include <cerrno>
 #include "libgambit/libgambit.h"
 
 #include "nfgame.h"
+#include "aggame.h"
 #include "gnmgame.h"
 #include "gnm.h"
 
@@ -71,23 +74,24 @@ void PrintBanner(std::ostream &p_stream)
 {
   p_stream << "Compute Nash equilibria using a global Newton method\n";
   p_stream << "Gametracer version 0.2, Copyright (C) 2002, Ben Blum and Christian Shelton\n";
-  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2010, The Gambit Project\n";
+  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2013, The Gambit Project\n";
   p_stream << "This is free software, distributed under the GNU GPL\n\n";
 }
 
 void PrintHelp(char *progname)
 {
   PrintBanner(std::cerr);
-  std::cerr << "Usage: " << progname << " [OPTIONS]\n";
-  std::cerr << "Accepts game on standard input.\n";
+  std::cerr << "Usage: " << progname << " [OPTIONS] [file]\n";
+  std::cerr << "If file is not specified, attempts to read game from standard input.\n";
 
   std::cerr << "Options:\n";
   std::cerr << "  -d DECIMALS      show equilibria as floating point with DECIMALS digits\n";
-  std::cerr << "  -h               print this help message\n";
+  std::cerr << "  -h, --help       print this help message\n";
   std::cerr << "  -n COUNT         number of perturbation vectors to generate\n";
   std::cerr << "  -s FILE          file containing perturbation vectors\n";
   std::cerr << "  -q               quiet mode (suppresses banner)\n";
-  std::cerr << "  -v               verbose mode (shows intermediate output)\n";
+  std::cerr << "  -V, --verbose    verbose mode (shows intermediate output)\n";
+  std::cerr << "  -v, --version    print version information\n";
   std::cerr << "                   (default is to only show equilibria)\n";
   exit(1);
 }
@@ -95,31 +99,36 @@ void PrintHelp(char *progname)
 void Solve(const Gambit::Game &p_game)
 {
   int i;
-
-  Gambit::Rational maxPay = p_game->GetMaxPayoff();
-  Gambit::Rational minPay = p_game->GetMinPayoff();
-  double scale = 1.0 / (maxPay - minPay);
-
-  int *actions = new int[p_game->NumPlayers()];
-  int veclength = p_game->NumPlayers();
-  for (int pl = 1; pl <= p_game->NumPlayers(); pl++) {
-    actions[pl-1] = p_game->GetPlayer(pl)->NumStrategies();
-    veclength *= p_game->GetPlayer(pl)->NumStrategies();
+  gnmgame *A=NULL;
+  if (p_game->IsAgg()){
+	  A = new aggame(dynamic_cast<Gambit::GameAggRep &>(*p_game));
   }
-  cvector payoffs(veclength);
-  
-  gnmgame *A = new nfgame(p_game->NumPlayers(), actions, payoffs);
-  
-  int *profile = new int[p_game->NumPlayers()];
-  for (Gambit::StrategyIterator iter(p_game); !iter.AtEnd(); iter++) {
-    for (int pl = 1; pl <= p_game->NumPlayers(); pl++) {
-      profile[pl-1] = iter->GetStrategy(pl)->GetNumber() - 1;
-    }
+  else {
+    Gambit::Rational maxPay = p_game->GetMaxPayoff();
+    Gambit::Rational minPay = p_game->GetMinPayoff();
+    double scale = 1.0 / (maxPay - minPay);
 
+    int *actions = new int[p_game->NumPlayers()];
+    int veclength = p_game->NumPlayers();
     for (int pl = 1; pl <= p_game->NumPlayers(); pl++) {
-      A->setPurePayoff(pl-1, profile, 
-		       (double) (iter->GetPayoff<Gambit::Rational>(pl) - minPay) *
+      actions[pl-1] = p_game->GetPlayer(pl)->NumStrategies();
+      veclength *= p_game->GetPlayer(pl)->NumStrategies();
+    }
+    cvector payoffs(veclength);
+  
+    A = new nfgame(p_game->NumPlayers(), actions, payoffs);
+  
+    int *profile = new int[p_game->NumPlayers()];
+    for (Gambit::StrategyIterator iter(p_game); !iter.AtEnd(); iter++) {
+      for (int pl = 1; pl <= p_game->NumPlayers(); pl++) {
+        profile[pl-1] = (*iter)->GetStrategy(pl)->GetNumber() - 1;
+      }
+
+      for (int pl = 1; pl <= p_game->NumPlayers(); pl++) {
+        A->setPurePayoff(pl-1, profile,
+		       (double) ((*iter)->GetPayoff(pl) - minPay) *
 		       scale);
+      }
     }
   }
 
@@ -175,13 +184,22 @@ int main(int argc, char *argv[])
   opterr = 0;
   bool quiet = false;
 
+  int long_opt_index = 0;
+  struct option long_options[] = {
+    { "help", 0, NULL, 'h'   },
+    { "version", 0, NULL, 'v'  },
+    { "verbose", 0, NULL, 'V'  },
+    { 0,    0,    0,    0   }
+  };
   int c;
-  while ((c = getopt(argc, argv, "d:n:s:qvhS")) != -1) {
+  while ((c = getopt_long(argc, argv, "d:n:s:qvVhS", long_options, &long_opt_index)) != -1) {
     switch (c) {
+    case 'v':
+      PrintBanner(std::cerr); exit(1);
     case 'q':
       quiet = true;
       break;
-    case 'v':
+    case 'V':
       g_verbose = true;
       break;
     case 'd':
@@ -215,11 +233,21 @@ int main(int argc, char *argv[])
     PrintBanner(std::cerr);
   }
 
+  std::istream* input_stream = &std::cin;
+  std::ifstream file_stream;
+  if (optind < argc) {
+    file_stream.open(argv[optind]);
+    if (!file_stream.is_open()) {
+      std::ostringstream error_message;
+      error_message << argv[0] << ": " << argv[optind];
+      perror(error_message.str().c_str());
+      exit(1);
+    }
+    input_stream = &file_stream;
+  }
+
   try {
-    Gambit::Game game = Gambit::ReadGame(std::cin);
-
-    game->BuildComputedValues();
-
+    Gambit::Game game = Gambit::ReadGame(*input_stream);
     Solve(game);
     return 0;
   }

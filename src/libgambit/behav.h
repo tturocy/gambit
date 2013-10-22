@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/behav.h
 // Behavior strategy profile classes
@@ -51,15 +51,15 @@ protected:
   const T &ActionValue(const GameAction &act) const 
     { return m_actionValues(act->GetInfoset()->GetPlayer()->GetNumber(),
 			    act->GetInfoset()->GetNumber(),
-			    act->m_number); }
+			    act->GetNumber()); }
   T &ActionValue(const GameAction &act)
     { return m_actionValues(act->GetInfoset()->GetPlayer()->GetNumber(),
 			    act->GetInfoset()->GetNumber(),
-			    act->m_number); }
+			    act->GetNumber()); }
   
   /// @name Auxiliary functions for computation of interesting values
   //@{
-  void GetPayoff(GameNodeRep *, const T &, int, T &) const;
+  void GetPayoff(GameTreeNodeRep *, const T &, int, T &) const;
   
   void ComputeSolutionDataPass2(const GameNode &node) const;
   void ComputeSolutionDataPass1(const GameNode &node) const;
@@ -68,14 +68,15 @@ protected:
 
   /// @name Converting mixed strategies to behavior
   //@{
-  void BehaviorStrat(int, GameNodeRep *);
+  void BehaviorStrat(int, GameTreeNodeRep *);
   void RealizationProbs(const MixedStrategyProfile<T> &,
-			int pl, const Array<int> &, GameNodeRep *);
+			int pl, const Array<int> &, GameTreeNodeRep *);
   //@}
 
 public:
   /// @name Lifecycle
   //@{
+  MixedBehavProfile(const Game &);
   MixedBehavProfile(const BehavSupport &);
   MixedBehavProfile(const MixedBehavProfile<T> &);
   MixedBehavProfile(const MixedStrategyProfile<T> &);
@@ -151,12 +152,12 @@ public:
   T GetLiapValue(bool p_definedOnly = false) const;
 
   const T &GetRealizProb(const GameNode &node) const;
+  T GetRealizProb(const GameInfoset &iset) const;
   const T &GetBeliefProb(const GameNode &node) const;
-  Vector<T> GetNodeValue(const GameNode &node) const;
-  T GetInfosetProb(const GameInfoset &iset) const;
-  const T &GetInfosetValue(const GameInfoset &iset) const;
+  Vector<T> GetPayoff(const GameNode &node) const;
+  const T &GetPayoff(const GameInfoset &iset) const;
+  const T &GetPayoff(const GameAction &act) const;
   T GetActionProb(const GameAction &act) const;
-  const T &GetActionValue(const GameAction &act) const;
   const T &GetRegret(const GameAction &act) const;
 
   T DiffActionValue(const GameAction &action, 
@@ -165,6 +166,8 @@ public:
 		   const GameAction &oppAction) const;
   T DiffNodeValue(const GameNode &node, const GamePlayer &player,
 		  const GameAction &oppAction) const;
+
+  MixedStrategyProfile<T> ToMixedProfile(void) const;
 
   //@}
 };

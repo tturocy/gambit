@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/integer.h
 // Interface to an arbitrary-length integer class
@@ -26,9 +26,6 @@ Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 #ifndef LIBGAMBIT_INTEGER_H
-#if defined(__GNUG__) && !defined(__APPLE_CC__)
-#pragma interface
-#endif
 #define LIBGAMBIT_INTEGER_H
 
 #include <string>

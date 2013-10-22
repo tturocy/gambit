@@ -8,10 +8,6 @@
 // Licence:     wxWindows license
 /////////////////////////////////////////////////////////////////////////////
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "plotfunc.h"
-#endif
-
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
@@ -28,7 +24,7 @@
 
 #include "wx/plotctrl/plotfunc.h"
 #include "wx/plotctrl/fparser.h"
-#include <math.h>
+#include <cmath>
 
 //----------------------------------------------------------------------------
 // wxPlotFuncRefData

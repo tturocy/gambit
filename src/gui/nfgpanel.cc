@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/nfgpanel.cc
 // Implementation of normal form panel
@@ -276,7 +276,7 @@ public:
 
 gbtTablePlayerToolbar::gbtTablePlayerToolbar(gbtNfgPanel *p_parent, 
 					     gbtGameDocument *p_doc)
-  : wxPanel(p_parent, -1, wxDefaultPosition, wxSize(110, -1)), 
+  : wxPanel(p_parent, -1, wxDefaultPosition, wxSize(210, -1)), 
     gbtGameView(p_doc),
     m_nfgPanel(p_parent)
 { 

@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/prepoly.h
 // Declaration of supporting classes for polynomials
@@ -23,7 +23,7 @@
 #ifndef PREPOLY_H
 #define PREPOLY_H
 
-#include <math.h>
+#include <cmath>
 #include "libgambit/libgambit.h"
 
 /*

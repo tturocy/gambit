@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/complex.h
 // Declaration of a complex number class
@@ -21,12 +21,9 @@
 //
 
 #ifndef _Complex_h
-#if defined(__GNUG__) && !defined(__APPLE_CC__)
-#pragma interface
-#endif
 #define _Complex_h 1
 
-#include <math.h>
+#include <cmath>
 
 class gComplex
 {
@@ -64,9 +61,6 @@ public:
   void       operator -= (const gComplex& y);
   void       operator *= (const gComplex& y);
   void       operator /= (const gComplex& y);
-
-// error reporting
-  void    error(const char* msg) const;
 
 // friends outside the class
   friend double    fabs(const gComplex& x);              

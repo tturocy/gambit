@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/gnarray.h
 // Interface declaration for N-dimensional arrays
@@ -23,7 +23,6 @@
 #ifndef GNARRAY_H
 #define GNARRAY_H
 
-#include <assert.h>
 #include "libgambit/libgambit.h"
 
 //

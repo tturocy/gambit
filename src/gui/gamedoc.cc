@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/gamedoc.cc
 // Implementation of game document class
@@ -136,12 +136,9 @@ void gbtStrategyDominanceStack::Reset(void)
 {
   for (int i = 1; i <= m_supports.Length(); delete m_supports[i++]);
   m_supports = Gambit::Array<Gambit::StrategySupport *>();
-
-  if (m_doc->GetGame()->HasComputedValues()) {
-    m_supports.Append(new Gambit::StrategySupport(m_doc->GetGame()));
-    m_current = 1;
-    m_noFurther = false;
-  }
+  m_supports.Append(new Gambit::StrategySupport(m_doc->GetGame()));
+  m_current = 1;
+  m_noFurther = false;
 }
 
 bool gbtStrategyDominanceStack::NextLevel(void)
@@ -195,7 +192,6 @@ gbtGameDocument::gbtGameDocument(Gambit::Game p_game)
     m_behavSupports(this, true), m_stratSupports(this, true),
     m_currentProfileList(0)
 {
-  m_game->Canonicalize();
   wxGetApp().AddDocument(this);
 
   std::ostringstream s;
@@ -272,8 +268,8 @@ bool gbtGameDocument::LoadDocument(const wxString &p_filename,
       bool isFloat = false;
       for (TiXmlNode *profile = analysis->FirstChild("profile");
 	   profile; profile = profile->NextSiblingElement()) {
-	if (std::string(profile->FirstChild()->Value()).find('.') != (unsigned int) -1 ||
-	    std::string(profile->FirstChild()->Value()).find('e') != (unsigned int) -1) {
+	if (std::string(profile->FirstChild()->Value()).find('.') != std::string::npos ||
+	    std::string(profile->FirstChild()->Value()).find('e') != std::string::npos) {
 	  isFloat = true;
 	  break;
 	}
@@ -340,13 +336,13 @@ void gbtGameDocument::SaveDocument(std::ostream &p_file) const
 
   if (m_game->IsTree()) {
     p_file << "<efgfile>\n";
-    m_game->WriteEfgFile(p_file);
+    m_game->Write(p_file, "efg");
     p_file << "</efgfile>\n";
 
   }
   else {
     p_file << "<nfgfile>\n";
-    m_game->WriteNfgFile(p_file);
+    m_game->Write(p_file, "nfg");
     p_file << "</nfgfile>\n";
   }
 
@@ -363,7 +359,6 @@ void gbtGameDocument::UpdateViews(gbtGameModificationType p_modifications)
 {
   if (p_modifications != GBT_DOC_MODIFIED_NONE) {
     m_modified = true;
-    m_game->Canonicalize();
     m_redoList = Gambit::List<std::string>();
 
     std::ostringstream s;
@@ -397,7 +392,6 @@ void gbtGameDocument::PostPendingChanges(void)
 void gbtGameDocument::BuildNfg(void)
 { 
   if (m_game->IsTree()) {
-    m_game->BuildComputedValues();
     m_stratSupports.Reset();
     for (int i = 1; i <= m_profiles.Length(); m_profiles[i++]->BuildNfg());
   }
@@ -619,7 +613,7 @@ void gbtGameDocument::DoSave(const wxString &p_filename)
 void gbtGameDocument::DoExportEfg(const wxString &p_filename)
 {
   std::ofstream file(static_cast<const char *>(p_filename.mb_str()));
-  m_game->WriteEfgFile(file);
+  m_game->Write(file, "efg");
   UpdateViews(GBT_DOC_MODIFIED_NONE);
 }
 
@@ -627,7 +621,7 @@ void gbtGameDocument::DoExportNfg(const wxString &p_filename)
 {
   std::ofstream file(static_cast<const char *>(p_filename.mb_str()));
   BuildNfg();
-  m_game->WriteNfgFile(file);
+  m_game->Write(file, "nfg");
   UpdateViews(GBT_DOC_MODIFIED_NONE);
 }
 
@@ -806,7 +800,7 @@ void gbtGameDocument::DoNewOutcome(GameNode p_node)
 
 void gbtGameDocument::DoNewOutcome(PureStrategyProfile p_profile)
 {
-  p_profile.SetOutcome(m_game->NewOutcome());
+  p_profile->SetOutcome(m_game->NewOutcome());
   UpdateViews(GBT_DOC_MODIFIED_PAYOFFS);
 }
 

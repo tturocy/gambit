@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/logit/logbehav.imp
 // Behavior strategy profile where action probabilities are represented using
@@ -22,6 +22,7 @@
 //
 
 #include "logbehav.h"
+#include "libgambit/gametree.h"
 
 //========================================================================
 //                  LogBehavProfile<T>: Lifecycle
@@ -187,14 +188,14 @@ const T &LogBehavProfile<T>::GetBeliefProb(const GameNode &node) const
 }
 
 template <class T>
-Vector<T> LogBehavProfile<T>::GetNodeValue(const GameNode &node) const
+Vector<T> LogBehavProfile<T>::GetPayoff(const GameNode &node) const
 { 
   ComputeSolutionData();
-  return m_nodeValues.Row(node->number);
+  return m_nodeValues.Row(node->GetNumber());
 }
 
 template <class T>
-T LogBehavProfile<T>::GetInfosetProb(const GameInfoset &iset) const
+T LogBehavProfile<T>::GetRealizProb(const GameInfoset &iset) const
 { 
   ComputeSolutionData();
   T prob = (T) 0;
@@ -205,7 +206,7 @@ T LogBehavProfile<T>::GetInfosetProb(const GameInfoset &iset) const
 }
 
 template <class T>
-const T &LogBehavProfile<T>::GetInfosetValue(const GameInfoset &iset) const
+const T &LogBehavProfile<T>::GetPayoff(const GameInfoset &iset) const
 { 
   ComputeSolutionData();
   return m_infosetValues(iset->GetPlayer()->GetNumber(), iset->GetNumber());
@@ -215,8 +216,8 @@ template <class T>
 T LogBehavProfile<T>::GetActionProb(const GameAction &action) const
 { 
   if (action->GetInfoset()->GetPlayer()->IsChance()) {
-    GameInfosetRep *infoset = action->GetInfoset();
-    return infoset->GetActionProb<T>(action->GetNumber());
+    GameTreeInfosetRep *infoset = dynamic_cast<GameTreeInfosetRep *>(action->GetInfoset().operator->());
+    return infoset->GetActionProb(action->GetNumber(), (T) 0);
   }
   else if (!m_support.Contains(action)) {
     return (T) 0.0;
@@ -232,8 +233,8 @@ template <class T>
 T LogBehavProfile<T>::GetLogActionProb(const GameAction &action) const
 { 
   if (action->GetInfoset()->GetPlayer()->IsChance()) {
-    GameInfosetRep *infoset = action->GetInfoset();
-    return log(infoset->GetActionProb<T>(action->GetNumber()));
+    GameTreeInfosetRep *infoset = dynamic_cast<GameTreeInfosetRep *>(action->GetInfoset().operator->());
+    return log(infoset->GetActionProb(action->GetNumber(), (T) 0));
   }
   else {
     return m_logProbs(action->GetInfoset()->GetPlayer()->GetNumber(),
@@ -243,7 +244,7 @@ T LogBehavProfile<T>::GetLogActionProb(const GameAction &action) const
 }
 
 template <class T>
-const T &LogBehavProfile<T>::GetActionValue(const GameAction &act) const
+const T &LogBehavProfile<T>::GetPayoff(const GameAction &act) const
 { 
   ComputeSolutionData();
   return m_actionValues(act->GetInfoset()->GetPlayer()->GetNumber(),
@@ -260,7 +261,7 @@ const T &LogBehavProfile<T>::GetRegret(const GameAction &act) const
 }
 
 template <class T>
-void LogBehavProfile<T>::GetPayoff(GameNodeRep *node, 
+void LogBehavProfile<T>::GetPayoff(GameTreeNodeRep *node, 
 				     const T &prob, int player, T &value) const
 {
   if (node->outcome) {
@@ -273,7 +274,7 @@ void LogBehavProfile<T>::GetPayoff(GameNodeRep *node,
       // chance player
       for (int act = 1; act <= node->NumChildren(); act++) {
 	GetPayoff(node->GetChild(act),
-		  prob * node->infoset->GetActionProb<T>(act), player, value);
+		  prob * node->infoset->GetActionProb(act, (T) 0), player, value);
       }
     }
     else {
@@ -385,7 +386,7 @@ T LogBehavProfile<T>::DiffActionValue(const GameAction &p_action,
     GameNode child = member->GetChild(p_action->GetNumber());
 
     deriv += derivs[i] * m_nodeValues(child->GetNumber(), player->GetNumber());
-    deriv -= derivs[i] * GetActionValue(p_action);
+    deriv -= derivs[i] * GetPayoff(p_action);
     deriv += GetProb(p_oppAction) * m_beliefs[member->GetNumber()] * DiffNodeValue(child, player, p_oppAction);
   }
 
@@ -544,7 +545,7 @@ void LogBehavProfile<T>::ComputeSolutionData(void) const
 
     ComputeSolutionDataPass2(m_support.GetGame()->GetRoot());
 
-    // At this point, mark the cache as value, so calls to GetInfosetValue()
+    // At this point, mark the cache as value, so calls to GetPayoff()
     // don't create a loop.
     m_cacheValid = true;
 
@@ -564,7 +565,7 @@ void LogBehavProfile<T>::ComputeSolutionData(void) const
 	  m_gripe(action->GetInfoset()->GetPlayer()->GetNumber(),
 		  action->GetInfoset()->GetNumber(), 
 		  action->GetNumber()) = 
-	    (ActionValue(action) - GetInfosetValue(infoset)) * GetInfosetProb(infoset);
+	    (ActionValue(action) - GetPayoff(infoset)) * GetRealizProb(infoset);
 	}
       }
     }

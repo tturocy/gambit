@@ -15,7 +15,9 @@ General information
 -------------------
 
 Gambit uses the standard autotools mechanism for configuring and building.
-This should be familiar to most users of Un*ces and MacOS X.  In general,
+This should be familiar to most users of Un*ces and MacOS X.  
+
+If you are building from a source tarball, 
 you just need to unpack the sources, change directory to the top level
 of the sources (typically of the form gambit-0.yyyy.mm.dd), and do the
 usual ::
@@ -25,18 +27,51 @@ usual ::
   sudo make install
 
 Command-line options are available to modify the configuration process;
-do `./configure --help` for information.  
+do `./configure --help` for information.  Of these, the option which
+may be most useful is to disable the build of the graphical interface
 
 By default Gambit will be installed in /usr/local.  You can change this
-by replacing configure step with one of the form
+by replacing configure step with one of the form ::
 
-./configure --prefix=/your/path/here
+  ./configure --prefix=/your/path/here
 
 .. note::
   The graphical interface relies on external calls to other
   programs built in this process, especially for the computation of
   equilibria.  It is strongly recommended that you install the Gambit
   executables to a directory in your path!
+
+
+Building from git repository
+----------------------------
+
+If you want to live on the bleeding edge, you can get the latest
+version of the Gambit sources from the Gambit repository on
+github.com, via ::
+
+  git clone git://github.com/gambitproject/gambit.git
+  cd gambit
+
+After this, you will need to set up the build scripts by executing ::
+
+  aclocal
+  libtoolize
+  automake --add-missing
+  autoconf
+
+For this, you will need to have automake, autoconf, and libtool2
+installed on your system.
+
+At this point, you can then continue with the configuration and build
+stages as in the previous section.
+
+In the git repository, the branch ``master`` always points to the
+latest development version.  New development should in general always
+be based off this branch.  Branches labeled ``maintVV``, where ``VV``
+is the version number, point to the latest commit on a stable
+version; so, for example, ``maint13`` refers to the latest commit for
+Gambit version 13.x.x.  Bug fixes should typically be based off of
+this branch.
 
 
 Supported compilers
@@ -50,16 +85,6 @@ If you wish to use another compiler, the most likely stumbling block is
 that Gambit uses templated member functions for classes, so the compiler
 must support these.  (Version of gcc prior to 3.4 do not, for example.)
 
-For 64-bit users
-----------------
-
-The program gambit-enumpoly does not compile on 64-bit systems.  A new
-version of that program is being developed.  It is currently being distributed
-separately on the Gambit website.  In the meanwhile, to compile the other
-programs in Gambit, 64-bit users should add the switch --disable-enumpoly
-to the configuration step, e.g. ::
-  
-  ./configure --disable-enumpoly [other options here]
 
 
 For Windows users
@@ -76,30 +101,51 @@ applications, whereas Cygwin requires an extra compatibility layer.
 For OS X users
 --------------
 
-OS X users should being by following the Un*x/Linux instructions above.
-This will create the command-line tools, and the graphical interface
-binary called `gambit`.  This graphical interface binary requires the
-X server to run correctly.
+For building the command-line tools only, one should follow the
+instructions for Un*x/Linux platforms above.  ``make install`` will
+install the command-line tools into ``/usr/local/bin`` (or the path
+specified in the ``configure`` step).
 
-For a more native OS X experience, after completing the Un*x/Linux
-instructions, additionally issue the command ::
+To build the graphical interface, wxWidgets 2.8.12 is required.
+(The interface will build with wxWidgets 2.9.4, but there is a bug
+in wxWidgets involving drag-and-drop which renders the graphical interface
+essentially unusable.)
 
+Snow Leopard (OS X 10.8) users will have to take some extra steps to
+build wxWidgets.  wxWidgets 2.8.12 requires the 10.6 SDK to build the
+using Cocoa; this has been removed by Apple in recent editions of
+XCode.  Download and unpack the 10.6 SDK from an earlier XCode version
+into
+``/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk``.
+With that in place, unpack the wxWidgets sources, and from the root
+directory of the wxWidgets sources, do::
+
+  mkdir build-debug
+  cd build-debug
+  arch_flags="-arch i386" CFLAGS="$arch_flags" CXXFLAGS="$arch_flags" \
+     CPPFLAGS="$arch_flags" LDFLAGS="$arch_flags" OBJCFLAGS="$arch_flags" \ 
+     OBJCXXFLAGS="$arch_flags" \
+     ../configure  \
+     --with-macosx-version-min=10.6 \
+     --with-macosx-sdk=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk \
+     --prefix="$(pwd)" --disable-shared --enable-debug --enable-unicode
+  make
+
+Then, when configuring Gambit, use::
+
+  arch_flags="-arch i386" CFLAGS="$arch_flags" CXXFLAGS="$arch_flags" \
+     CPPFLAGS="$arch_flags" LDFLAGS="$arch_flags" OBJCFLAGS="$arch_flags" \ 
+     OBJCXXFLAGS="$arch_flags" \
+     ./configure --with-wxdir=WXPATH/build-debug
   make osx-bundle
 
-This will create a directory Gambit.app with the graphical interface
-in an application bundle.  This bundle can then be copied (e.g., to
-/Applications) and used like any other OS X application.
+where ``WXPATH`` is the path at which you have the wxWidgets sources
+unpacked.
 
-Depending on which version of OS X you use, the version of wxWidgets
-that comes bundled may not be new enough to meet Gambit's requirements.
-The version that shipped with OS X Tiger, for instance, is not.
-If you need to build wxWidgets yourself (see below),
-be sure to tell the ./configure step where to find the version you built
-by using the --with-wx-prefix parameter.  For example, if you install
-wxWidgets into /usr/local (the default when you build it), configure
-Gambit with ::
-
-  ./configure --with-wx-prefix=/usr/local
+This produces an application ``Gambit.app`` in the current directory,
+which can be run from its current location, or copied elsewhere in the
+disk (such as ``/Applications``).  The application bundle includes the
+command-line executables.
 
 
 The graphical interface and wxWidgets
@@ -112,6 +158,11 @@ to download this if you need it.  Packages of this should be available
 for most Un*x users through their package managers (apt or rpm).  Note
 that you'll need the appropriate -dev package for wxWidgets to get the
 header files needed to build Gambit.
+
+The current recommended versions of wxWidgets are 2.9.4 for Windows
+and Linux, and 2.8.12 for Mac OS X.  There is a bug in the 2.9.x
+series of wxWidgets which affects drag-and-drop operations, and
+therefore makes the graphical interface essentially useless.
 
 Un*x users, please note that Gambit at this time only supports the
 GTK port of wxWidgets, and not the Motif/Lesstif or the Universal ports.
@@ -132,3 +183,28 @@ can either (a) simply not install wxWidgets, or (b) pass the argument
 
 This will just build the command-line tools, and will not require
 a wxWidgets installation.
+
+
+.. _build-python:
+
+Building the Python extension
+-----------------------------
+
+The :ref:`Python extension for Gambit <python-api>` is in src/python
+in the Gambit source tree.  Prerequisite packages include setuptools,
+Cython, IPython, and scipy.
+
+Building the extension follows the standard approach::
+
+  cd src/python
+  python setup.py build
+  sudo python setup.py install
+
+There is a set of test cases in src/python/gambit/tests.  These can
+be exercised via nosetests (requires Python package nose)::
+
+  cd src/python/gambit/tests
+  nosetests
+
+Once installed, simply ``import gambit`` in your Python shell or
+script to get started.

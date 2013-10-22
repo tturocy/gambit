@@ -9,10 +9,6 @@
 // Licence:     wxWidgets licence
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "sheettbl.h"
-#endif
-
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
@@ -22,7 +18,7 @@
 
 #include "wx/sheet/sheettbl.h"
 #include "wx/sheet/sheet.h"
-#include <math.h>                 // used in GetDefaultColLabelValue
+#include <cmath>                 // used in GetDefaultColLabelValue
 
 #ifndef WX_PRECOMP
 #endif // WX_PRECOMP

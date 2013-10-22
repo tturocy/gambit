@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/dleditmove.h
 // Dialog for viewing and editing properties of a move
@@ -23,14 +23,14 @@
 #ifndef DLEDITMOVE_H
 #define DLEDITMOVE_H
 
-#include "wx/sheet/sheet.h"
+class gbtActionSheet;
 
 class gbtEditMoveDialog : public wxDialog {
 private:
   Gambit::GameInfoset m_infoset;
   wxChoice *m_player;
   wxTextCtrl *m_infosetName;
-  wxSheet *m_actionSheet;
+  gbtActionSheet *m_actionSheet;
 
 public:
   // Lifecycle
@@ -40,9 +40,7 @@ public:
   wxString GetInfosetName(void) const { return m_infosetName->GetValue(); }
   int GetPlayer(void) const { return (m_player->GetSelection() + 1); }
 
-  int NumActions(void) const { return m_actionSheet->GetNumberRows(); }
-  //  const Gambit::Array<gbtEfgAction *> &GetActions(void) const 
-  //  { return m_infoset->Actions(); }
+  int NumActions(void) const;
   wxString GetActionName(int p_act) const;
   wxString GetActionProb(int p_act) const; 
 };

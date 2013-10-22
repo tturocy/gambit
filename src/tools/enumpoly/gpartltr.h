@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/gpartltr.h
 // Interface to TreeOfPartials
@@ -119,7 +119,7 @@ public:
   inline int Length()                                             const
     { return PartialTreeList.Length(); }
   inline int Dmnsn()                                              const
-    { assert (Length() > 0); return PartialTreeList[1].Dmnsn(); }
+  { /*assert (Length() > 0);*/ return PartialTreeList[1].Dmnsn(); }
   Gambit::Matrix<T> DerivativeMatrix(const Gambit::Vector<T>&)                  const; 
   Gambit::Matrix<T> DerivativeMatrix(const Gambit::Vector<T>&, const int&)      const; 
   Gambit::SquareMatrix<T> SquareDerivativeMatrix(const Gambit::Vector<T>&)      const; 

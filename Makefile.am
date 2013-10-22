@@ -1,6 +1,6 @@
 ##
 ## This file is part of Gambit
-## Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+## Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 ##
 ## FILE: Makefile.am
 ## Top-level automake input file for Gambit
@@ -27,7 +27,10 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = \
 	gambit.spec \
 	gambit.desktop \
+        gambit.wxs \
+	license.rtf \
 	contrib/mac/Info.plist \
+	contrib/mac/gambit.icns \
 	src/labenski/README.txt \
 	src/labenski/art/grab.xpm \
 	src/labenski/art/hand.xpm \
@@ -251,6 +254,59 @@ EXTRA_DIST = \
 	src/stata/mixed.class \
 	src/stata/stplugin.c \
 	src/stata/stplugin.h
+	src/python/setup.py \
+	src/python/gambit/__init__.py \
+	src/python/gambit/cmdline.py \
+	src/python/gambit/enumeration.py \
+	src/python/gambit/gameiter.py \
+	src/python/gambit/gte.py \
+	src/python/gambit/levelk.py \
+	src/python/gambit/nash.py \
+	src/python/gambit/pctrace.py \
+	src/python/gambit/profiles.py \
+	src/python/gambit/qre.py \
+	src/python/gambit/games/__init__.py \
+	src/python/gambit/games/contest.py \
+	src/python/gambit/games/meanstat.py \
+	src/python/gambit/games/public.py \
+	src/python/gambit/lib/__init__.py \
+	src/python/gambit/lib/action.pxi \
+	src/python/gambit/lib/basegame.pxi \
+	src/python/gambit/lib/behav.pxi \
+	src/python/gambit/lib/error.py \
+	src/python/gambit/lib/game.pxi \
+	src/python/gambit/lib/infoset.pxi \
+	src/python/gambit/lib/libgambit.cpp \
+	src/python/gambit/lib/libgambit.pyx \
+	src/python/gambit/lib/mixed.pxi \
+	src/python/gambit/lib/node.pxi \
+	src/python/gambit/lib/outcome.pxi \
+	src/python/gambit/lib/player.pxi \
+	src/python/gambit/lib/strategy.pxi \
+	src/python/gambit/lib/stratspt.pxi \
+	src/python/gambit/lib/util.h \
+	src/python/gambit/tests/test_actions.py \
+	src/python/gambit/tests/test_behav.py \
+	src/python/gambit/tests/test_extensive.py \
+	src/python/gambit/tests/test_game.py \
+	src/python/gambit/tests/test_infosets.py \
+	src/python/gambit/tests/test_mixed.py \
+	src/python/gambit/tests/test_node.py \
+	src/python/gambit/tests/test_outcomes.py \
+	src/python/gambit/tests/test_players.py \
+	src/python/gambit/tests/test_strategic.py \
+	src/python/gambit/tests/test_stratspt.py \
+	src/python/gambit/tests/test_stratprofiles.py \
+	src/python/gambit/tests/test_strategies.py \
+	src/python/gambit/tests/test_games/basic_extensive_game.efg \
+	src/python/gambit/tests/test_games/complicated_extensive_game.efg \
+	src/python/gambit/tests/test_games/const_sum_game.nfg \
+	src/python/gambit/tests/test_games/mixed_behavior_game.efg \
+	src/python/gambit/tests/test_games/mixed_strategy.nfg \
+	src/python/gambit/tests/test_games/non_const_sum_game.nfg \
+	src/python/gambit/tests/test_games/not_perfect_recall.efg \
+	src/python/gambit/tests/test_games/payoff_game.nfg \
+	src/python/gambit/tests/test_games/perfect_recall.efg
 
 
 # lib_LTLIBRARIES = libgambit.la
@@ -281,6 +337,11 @@ libgambit_la_SOURCES = \
 	src/libgambit/number.h \
 	src/libgambit/game.cc \
 	src/libgambit/game.h \
+	src/libgambit/gameexpl.h \
+	src/libgambit/gametable.cc \
+	src/libgambit/gametable.h \
+	src/libgambit/gametree.cc \
+	src/libgambit/gametree.h \
 	src/libgambit/behav.cc \
 	src/libgambit/behav.h \
 	src/libgambit/behav.imp \
@@ -298,7 +359,8 @@ libgambit_la_SOURCES = \
 	src/libgambit/subgame.cc \
 	src/libgambit/subgame.h \
 	src/libgambit/file.cc \
-	src/libgambit/libgambit.h
+	src/libgambit/libgambit.h \
+	${libagg_la_SOURCES}
 
 libgambitincludedir = $(includedir)/libgambit
 libgambitinclude_HEADERS = \
@@ -327,10 +389,40 @@ libgambitinclude_HEADERS = \
 	src/libgambit/mixed.imp \
 	src/libgambit/stratitr.h \
 	src/libgambit/stratspt.h \
-	src/libgambit/libgambit.h
+	src/libgambit/libgambit.h \
+	${libagginclude_HEADERS}
+
+libagg_la_SOURCES = \
+	src/libgambit/gameagg.cc \
+	src/libgambit/gameagg.h \
+	src/libgambit/gamebagg.cc \
+	src/libgambit/gamebagg.h \
+	src/libagg/GrayComposition.h \
+	src/libagg/agg.cc \
+	src/libagg/agg.h \
+	src/libagg/bagg.cc \
+	src/libagg/bagg.h \
+	src/libagg/proj_func.h \
+	src/libagg/trie_map.h \
+        src/libagg/trie_map.imp
+
+libaggincludedir = $(includedir)/libagg
+libagginclude_HEADERS = \
+	src/libgambit/gameagg.h \
+	src/libgambit/gamebagg.h \
+	src/libagg/GrayComposition.h \
+	src/libagg/agg.h \
+	src/libagg/bagg.h \
+	src/libagg/proj_func.h \
+	src/libagg/trie_map.h \
+        src/libagg/trie_map.imp
 
 # libgambit_la_LDFLAGS = -no-undefined -version-info 0:0:0
 
+
+if IS_WIN32
+AM_LDFLAGS = -static-libgcc -static-libstdc++
+endif
 
 bin_PROGRAMS = \
 	gambit-nfg2html \
@@ -351,6 +443,8 @@ bin_PROGRAMS += \
 	gambit-nfg-logitdyn \
 	gambit-lp \
 	gambit-simpdiv
+
+bin_PROGRAMS += gambit-testagg
 
 if WITH_GUI
 bin_PROGRAMS += gambit
@@ -521,6 +615,8 @@ gambit_gnm_SOURCES = \
 	src/tools/gt/gnmgame.h \
 	src/tools/gt/nfgame.cc \
 	src/tools/gt/nfgame.h \
+	src/tools/gt/aggame.cc \
+	src/tools/gt/aggame.h \
 	src/tools/gt/nfggnm.cc
 
 gambit_ipa_SOURCES = \
@@ -533,6 +629,8 @@ gambit_ipa_SOURCES = \
 	src/tools/gt/ipa.h \
 	src/tools/gt/nfgame.cc \
 	src/tools/gt/nfgame.h \
+	src/tools/gt/aggame.cc \
+	src/tools/gt/aggame.h \
 	src/tools/gt/nfgipa.cc
 
 gambit_lcp_SOURCES = \
@@ -585,6 +683,9 @@ gambit_simpdiv_SOURCES = \
 	${libgambit_la_SOURCES} \
 	src/tools/simpdiv/nfgsimpdiv.cc
 
+gambit_testagg_SOURCES = \
+	${libgambit_la_SOURCES} \
+	src/libagg/getpayoffs.cc
 
 gambit_SOURCES = \
 	${libgambit_la_SOURCES} \
@@ -653,6 +754,8 @@ gambit_SOURCES = \
 	src/gui/analysis.h \
 	src/gui/edittext.cc \
 	src/gui/edittext.h \
+        src/gui/dcsvg.cc \
+        src/gui/dcsvg.h \
 	src/gui/dlabout.cc \
 	src/gui/dlabout.h \
 	src/gui/dleditmove.cc \
@@ -707,9 +810,7 @@ gambit_SOURCES = \
 	src/gui/tinyxml.cc \
 	src/gui/tinyxml.h \
 	src/gui/tinyxmlerror.cc \
-	src/gui/tinyxmlparser.cc \
-	src/gui/dcsvg.cc \
-	src/gui/dcsvg.h
+	src/gui/tinyxmlparser.cc
 
 
 gambit_LDADD = \
@@ -724,8 +825,8 @@ osx-bundle:
 	-mkdir Gambit.app/Contents
 	-mkdir Gambit.app/Contents/MacOS
 	-mkdir Gambit.app/Contents/Resources
-	cp contrib/mac/Info.plist Gambit.app/Contents
-	cp contrib/mac/gambit.icns Gambit.app/Contents/Resources/gambit.icns
+	cp ${top_srcdir}/contrib/mac/Info.plist Gambit.app/Contents
+	cp ${top_srcdir}/contrib/mac/gambit.icns Gambit.app/Contents/Resources/gambit.icns
 	echo -n 'APPL????' > Gambit.app/Contents/PkgInfo
 	cp gambit Gambit.app/Contents/MacOS/gambit
 	cp gambit-* Gambit.app/Contents/MacOS
@@ -736,3 +837,9 @@ osx-dmg:  osx-bundle
 	cp -r Gambit.app .dmg
 	hdiutil create Gambit.dmg -volname Gambit -srcfolder .dmg -format UDZO -imagekey zlib-level=9
 	rm -rf .dmg
+
+msw-msi: 
+	-mkdir installer
+	cp /usr/local/bin/gambit* installer
+	candle gambit.wxs
+	light -ext WixUIExtension gambit.wixobj

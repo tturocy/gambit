@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/efgdisplay.cc
 // Implementation of window class to display extensive form tree
@@ -44,7 +44,7 @@ BEGIN_EVENT_TABLE(gbtPayoffEditor, wxTextCtrl)
 END_EVENT_TABLE()
 
 gbtPayoffEditor::gbtPayoffEditor(wxWindow *p_parent)
-  : wxTextCtrl(p_parent, -1, wxT(""), 
+  : wxTextCtrl(p_parent, wxID_ANY, wxT(""), 
 	       wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER)
 {
   Show(false);
@@ -57,6 +57,7 @@ void gbtPayoffEditor::BeginEdit(gbtNodeEntry *p_entry, int p_player)
   m_player = p_player;
   SetValue(wxString(m_outcome->GetPayoff<std::string>(p_player).c_str(),
 		    *wxConvCurrent));
+  SetSize(wxSize(GetSize().GetWidth(), GetBestSize().GetHeight()));
   SetSelection(-1, -1);
   Show(true);
   SetFocus();
@@ -272,7 +273,7 @@ bool gbtPlayerDropTarget::OnDropText(wxCoord p_x, wxCoord p_y,
   if (!node)  return false;
 
   try {
-    switch (p_text[0]) {
+    switch ((char) p_text[0]) {
     case 'P': return OnDropPlayer(node, p_text);
     case 'C': return OnDropCopyNode(node, p_text);
     case 'M': return OnDropMoveNode(node, p_text);
@@ -434,7 +435,7 @@ void gbtEfgDisplay::OnKeyEvent(wxKeyEvent &p_event)
       
       Gambit::GameOutcome outcome = m_payoffEditor->GetOutcome();
       int player = m_payoffEditor->GetPlayer();
-      Gambit::GameNode node = m_payoffEditor->GetEntry()->GetNode();
+      Gambit::GameNode node = m_payoffEditor->GetNodeEntry()->GetNode();
       try {
 	m_doc->DoSetPayoff(outcome, player, m_payoffEditor->GetValue());
       }	

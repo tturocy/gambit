@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/stratspt.h
 // Interface to strategy classes for normal forms
@@ -73,6 +73,9 @@ public:
 /// in which they appear in the underlying game.
 class StrategySupport {
   template <class T> friend class MixedStrategyProfile;
+  template <class T> friend class MixedStrategyProfileRep;
+  template <class T> friend class AggMixedStrategyProfileRep;
+  template <class T> friend class BagentMixedStrategyProfileRep;
 protected:
   Game m_nfg;
   Array<Array<GameStrategy> > m_support;
@@ -113,6 +116,8 @@ public:
 
   /// Returns the total number of strategies in the support.
   int MixedProfileLength(void) const;
+
+  template <class T> MixedStrategyProfile<T> NewMixedStrategyProfile(void) const;
 
   /// Returns the strategy in the st'th position for player pl.
   GameStrategy GetStrategy(int pl, int st) const 

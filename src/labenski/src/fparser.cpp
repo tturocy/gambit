@@ -7,11 +7,6 @@
 // I apologize for mangling peoples names, but some unicode editors could not
 // properly load this file previously.
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "fparser.h"
-    #pragma implementation "fparser.hh"
-#endif
-
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
@@ -55,8 +50,8 @@
 
 // use our own asin/cos/tanh functions from since compilier doesn't have them
 // "A Numerical Library in C for Scientists and Engineers", H.T. Lau, 1995
-#include <math.h>
-#include <float.h>
+#include <cmath>
+#include <cfloat>
 
 double logoneplusx(double x)
 {

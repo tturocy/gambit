@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/style.h
 // Class to store settings related to graphical interface styling
@@ -59,7 +59,6 @@ const int GBT_BRANCH_LABEL_LABEL = 1;
 const int GBT_BRANCH_LABEL_PROBS = 2;
 const int GBT_BRANCH_LABEL_VALUE = 3;
 
-class wxConfig;
 class wxFont;
 
 class gbtStyle {

@@ -1,0 +1,187 @@
+dnl
+dnl This file is part of Gambit
+dnl Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
+dnl
+dnl FILE: configure.in
+dnl autoconf configuration script for Gambit
+dnl
+dnl This program is free software; you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free Software Foundation; either version 2 of the License, or
+dnl (at your option) any later version.
+dnl
+dnl This program is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl You should have received a copy of the GNU General Public License
+dnl along with this program; if not, write to the Free Software
+dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+dnl
+
+AC_INIT([gambit], [14.0.0])
+AC_CONFIG_SRCDIR([src/libgambit/libgambit.h])
+AM_INIT_AUTOMAKE([subdir-objects])
+AC_CONFIG_MACRO_DIR([m4])
+AM_OPTIONS_WXCONFIG
+dnl AM_CONFIG_HEADER(config.h)
+
+dnl User-specified options
+dnl By default, we build the GUI
+AC_ARG_ENABLE(gui,
+[  --disable-gui           don't build graphical interface ],
+[ case "${enableval}" in
+  yes) with_gui=true ;;
+  no)  with_gui=false ;;
+  *)  AC_MSG_ERROR(bad value ${enableval} for --enable-gui) ;;
+ esac], [with_gui=true])
+AM_CONDITIONAL(WITH_GUI, test x$with_gui = xtrue)
+
+dnl Disable building enumpoly -- isn't supported on 64-bit platforms
+AC_ARG_ENABLE(enumpoly,
+[  --disable-enumpoly      don't build gambit-enumpoly (not supported on 64bit) ],
+[ case "${enableval}" in
+  yes) with_enumpoly=true ;;
+  no)  with_enumpoly=false ;;
+  *)  AC_MSG_ERROR(bad value ${enableval} for --enable-enumpoly) ;;
+ esac], [with_enumpoly=true])
+AM_CONDITIONAL(WITH_ENUMPOLY, test x$with_enumpoly = xtrue)
+
+AC_DEFUN([MINGW_AC_WIN32_NATIVE_HOST],
+[AC_CACHE_CHECK([whether we are building for a Win32 host], 
+                [mingw_cv_win32_host],
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#ifdef _WIN32
+choke me
+#endif
+])], [mingw_cv_win32_host=no], [mingw_cv_win32_host=yes]))])
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_LIBTOOL
+AM_PROG_CC_C_O
+MINGW_AC_WIN32_NATIVE_HOST
+AM_CONDITIONAL(IS_WIN32, [test x$mingw_cv_win32_host = xyes])
+
+dnl A number of the following checks are currently commented out.
+dnl These are checks for functions and headers we do actually use,
+dnl but for which we don't have any workarounds should they be missing.
+
+dnl Checks for header files.
+dnl AC_HEADER_STDC
+dnl AC_CHECK_HEADERS(fcntl.h limits.h malloc.h sys/time.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl AC_C_CONST
+dnl AC_C_INLINE
+dnl AC_TYPE_PID_T
+dnl AC_TYPE_SIZE_T
+dnl AC_STRUCT_TM
+
+dnl Checks for library functions.
+dnl AC_FUNC_MEMCMP
+dnl AC_TYPE_SIGNAL
+dnl AC_CHECK_FUNCS(ftime putenv strdup strstr strtod strtol)
+AC_CHECK_FUNCS(bcmp srand48 drand48)
+
+
+if test x$with_gui = xtrue; then
+  dnl------------------------
+  dnl Checking for wxWidgets
+  dnl------------------------
+
+  dnl check for wx-config
+  AM_PATH_WXCONFIG(2.8.0, WXCONFIG=1)
+  if test "$WXCONFIG" != 1; then
+      AC_MSG_WARN([
+            Did not find a new enough version of wxWidgets; disabling build of
+            graphical interface.  If you want to build the graphical interface,
+            please check that wx-config is in path, the directory
+            where wxWidgets libraries are installed (returned by
+            'wx-config --libs' command) is in LD_LIBRARY_PATH or
+            equivalent variable and wxWidgets is version 2.8.0 or above.
+      ])
+      GUI_PROGS=""
+      AM_CONDITIONAL(WITH_GUI, test x0 = x1)
+  fi
+fi
+
+if test "${WITH_GUI}" == 1; then
+  dnl-----------------------------
+  dnl Checking for wxWidgets port
+  dnl-----------------------------
+
+  AC_MSG_CHECKING(for wxWidgets port)
+  if test `echo ${WX_CXXFLAGS} | grep -c __WXX11__` -eq 1; then
+    AC_MSG_RESULT(universal)
+    AC_MSG_WARN([
+            Found universal port of wxWidgets; disabling build of graphical
+            interface.  The graphical interface cannot be built with this
+            port because this port does not implement drag-and-drop capability.
+            Gambit recommends the GTK port of wxWidgets for best results.
+    ])
+    GUI_PROGS=""
+    AM_CONDITIONAL(WITH_GUI, test x0 = x1)
+  fi
+
+  if test `echo ${WX_CXXFLAGS} | grep -c __WXMOTIF__` -eq 1; then
+    AC_MSG_RESULT(Motif)
+    AC_MSG_WARN([
+            Found Motif port of wxWidgets; disabling build of graphical
+            interface.  The graphical interface cannot be built with this
+            port because this port does not implement drag-and-drop capability.
+            Gambit recommends the GTK port of wxWidgets for best results.
+    ])
+    GUI_PROGS=""
+    AM_CONDITIONAL(WITH_GUI, test x0 = x1)
+  fi
+
+  if test `echo ${WX_CXXFLAGS} | grep -c __WXGTK__` -eq 1; then
+    AC_MSG_RESULT(GTK)
+    WXPORT="GTK"
+    GUI_PROGS="gambit"
+  fi
+
+  if test `echo ${WX_CXXFLAGS} | grep -c __WXMSW__` -eq 1; then
+    AC_MSG_RESULT(Windows)
+    WXPORT="MSW"
+    GUI_PROGS="gambit"
+    dnl Windows uses the resources file
+    RC_OBJECT="gambitrc.o"
+    RC_OBJECT_PATH="bitmaps/gambitrc.o"
+    AC_SUBST(RC_OBJECT)
+    AC_SUBST(RC_OBJECT_PATH)
+  fi
+
+  if test `echo ${WX_CXXFLAGS} | grep -c __WXMAC__` -eq 1; then
+    AC_MSG_RESULT(Macintosh)
+    WXPORT="MAC"
+    GUI_PROGS="gambit"
+  fi
+
+  if test -z "$WXPORT"; then
+    AC_MSG_WARN([
+            Could not identify wxWidgets port.  Disabling build
+            of Gambit graphical interface.
+    ])
+    GUI_PROGS=""
+    AM_CONDITIONAL(WITH_GUI, test x0 = x1)
+  fi	
+fi
+
+AC_SUBST(GUI_PROGS)
+AC_SUBST(WX_CXXFLAGS)
+AC_SUBST(WX_LIBS)
+
+AC_SUBST(ENUMPOLY_PROGS)
+
+REZFLAGS=`echo $CXXFLAGS $WX_CXXFLAGS | sed 's/-mthreads//g' | sed 's/-g//g' | sed 's/-O. / /g' | sed 's/-I/--include-dir /g'`
+AC_SUBST(REZFLAGS)
+
+AC_OUTPUT(Makefile
+        contrib/Makefile
+        contrib/scripts/Makefile
+	contrib/scripts/enumpoly/Makefile)
+

@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/logit/efglogit.cc
 // Computation of agent quantal response equilibrium correspondence for
@@ -21,7 +21,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <libgambit/libgambit.h>
 #include "logbehav.imp"
@@ -139,8 +139,8 @@ double RatioEquation::Value(const LogBehavProfile<double> &p_profile,
   return (p_profile.GetLogProb(m_pl, m_iset, m_act) - 
 	  p_profile.GetLogProb(m_pl, m_iset, 1) -
 	  p_lambda *
-	  (p_profile.GetActionValue(m_infoset->GetAction(m_act)) -
-	   p_profile.GetActionValue(m_infoset->GetAction(1))));
+	  (p_profile.GetPayoff(m_infoset->GetAction(m_act)) -
+	   p_profile.GetPayoff(m_infoset->GetAction(1))));
 }
 
 void RatioEquation::Gradient(const LogBehavProfile<double> &p_profile,
@@ -176,8 +176,8 @@ void RatioEquation::Gradient(const LogBehavProfile<double> &p_profile,
     }
   }
 
-  p_gradient[i] = (p_profile.GetActionValue(m_infoset->GetAction(1)) -
-		   p_profile.GetActionValue(m_infoset->GetAction(m_act)));
+  p_gradient[i] = (p_profile.GetPayoff(m_infoset->GetAction(1)) -
+		   p_profile.GetPayoff(m_infoset->GetAction(m_act)));
 }
 
 

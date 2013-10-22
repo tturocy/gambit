@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/logit/nfglogit.cc
 // Computation of quantal response equilibrium correspondence for
@@ -21,7 +21,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 
@@ -39,8 +39,8 @@ StrategicQREPathTracer::TraceStrategicPath(const MixedStrategyProfile<double> &p
 					   double p_startLambda, double p_maxLambda, 
 					   double p_omega)
 {
-  Vector<double> x(p_start.Length() + 1);
-  for (int i = 1; i <= p_start.Length(); i++) {
+  Vector<double> x(p_start.MixedProfileLength() + 1);
+  for (int i = 1; i <= p_start.MixedProfileLength(); i++) {
     x[i] = log(p_start[i]);
   }
   x[x.Length()] = p_startLambda;
@@ -85,8 +85,8 @@ void
 StrategicQREPathTracer::GetLHS(const Vector<double> &p_point, Vector<double> &p_lhs)
 {
   const StrategySupport &support = m_start.GetSupport();
-  MixedStrategyProfile<double> profile(support), logprofile(support);
-  for (int i = 1; i <= profile.Length(); i++) {
+  MixedStrategyProfile<double> profile(support.NewMixedStrategyProfile<double>()), logprofile(support.NewMixedStrategyProfile<double>());
+  for (int i = 1; i <= profile.MixedProfileLength(); i++) {
     profile[i] = exp(p_point[i]);
     logprofile[i] = p_point[i];
   }
@@ -109,8 +109,8 @@ StrategicQREPathTracer::GetLHS(const Vector<double> &p_point, Vector<double> &p_
       else {
 	p_lhs[rowno] = (logprofile[player->GetStrategy(st)] - 
 			logprofile[player->GetStrategy(1)] -
-			lambda * (profile.GetStrategyValue(player->GetStrategy(st)) -
-				  profile.GetStrategyValue(player->GetStrategy(1))));
+			lambda * (profile.GetPayoff(player->GetStrategy(st)) -
+				  profile.GetPayoff(player->GetStrategy(1))));
 
       }
     }
@@ -122,8 +122,8 @@ StrategicQREPathTracer::GetJacobian(const Vector<double> &p_point,
 				    Matrix<double> &p_matrix)
 {
   const StrategySupport &support = m_start.GetSupport();
-  MixedStrategyProfile<double> profile(support), logprofile(support);
-  for (int i = 1; i <= profile.Length(); i++) {
+  MixedStrategyProfile<double> profile(support.NewMixedStrategyProfile<double>()), logprofile(support.NewMixedStrategyProfile<double>());
+  for (int i = 1; i <= profile.MixedProfileLength(); i++) {
     profile[i] = exp(p_point[i]);
     logprofile[i] = p_point[i];
   }
@@ -198,8 +198,8 @@ StrategicQREPathTracer::GetJacobian(const Vector<double> &p_point,
 	// column wrt lambda
 	// 1 == sum-to-one
 	p_matrix(p_matrix.NumRows(), rowno) =
-	  (profile.GetStrategyValue(support.GetStrategy(i, 1)) - 
-	   profile.GetStrategyValue(support.GetStrategy(i, j)));
+	  (profile.GetPayoff(support.GetStrategy(i, 1)) - 
+	   profile.GetPayoff(support.GetStrategy(i, j)));
       }
     }
   }
@@ -247,12 +247,12 @@ StrategicQREPathTracer::PrintProfile(std::ostream &p_stream,
 
   if (IsMLEMode()) {
     MixedStrategyProfile<double> profile(m_start);
-    for (int i = 1; i <= profile.Length(); i++) {
+    for (int i = 1; i <= profile.MixedProfileLength(); i++) {
       profile[i] = exp(x[i]);
     }
 
     p_stream.setf(std::ios::fixed);
-    p_stream << "," << std::setprecision(m_decimals) << LogLike(profile);
+    p_stream << "," << std::setprecision(m_decimals) << LogLike((const Vector<double> &) profile);
     p_stream.unsetf(std::ios::fixed);
   }
 

@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/simpdiv/nfgsimpdiv.cc
 // Compute Nash equilibria via simplicial subdivision on the normal form
@@ -21,8 +21,10 @@
 //
 
 #include <unistd.h>
-#include <stdlib.h>
+#include <getopt.h>
+#include <cstdlib>
 #include <iostream>
+#include <cerrno>
 #include <iomanip>
 #include <fstream>
 #include "libgambit/libgambit.h"
@@ -128,7 +130,7 @@ nfgSimpdiv::~nfgSimpdiv()
 Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Rational> &y)
 {
   Gambit::Array<int> ylabel(2);
-  Gambit::RectArray<int> labels(y.Length(), 2), pi(y.Length(), 2);
+  Gambit::RectArray<int> labels(y.MixedProfileLength(), 2), pi(y.MixedProfileLength(), 2);
   Gambit::PVector<int> U(y.GetSupport().NumStrategies()), TT(y.GetSupport().NumStrategies());
   Gambit::PVector<Gambit::Rational> ab(y.GetSupport().NumStrategies());
   Gambit::PVector<Gambit::Rational> besty(y.GetSupport().NumStrategies());
@@ -136,7 +138,7 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
   for (int i = 1; i <= v.Length(); i++) {
     v[i] = y[i];
   }
-  besty = y;
+  besty = (const Gambit::Vector<Gambit::Rational> &) y;
 
   int i = 0;
   int j, k, h, jj, hh,ii, kk,tot;
@@ -450,7 +452,7 @@ Gambit::Rational nfgSimpdiv::getlabel(Gambit::MixedStrategyProfile<Gambit::Ratio
     maxval=(Gambit::Rational(-1000000));
     jj=0;
     for(j=1;j<=yy.GetSupport().NumStrategies(i);j++) {
-      pay=yy.GetStrategyValue(yy.GetSupport().GetStrategy(i,j));
+      pay=yy.GetPayoff(yy.GetSupport().GetStrategy(i,j));
       payoff+=(yy[yy.GetSupport().GetStrategy(i,j)]*pay);
       if(pay>maxval) {
 	maxval=pay;
@@ -483,7 +485,7 @@ void PrintProfile(std::ostream &p_stream,
 		  const Gambit::MixedStrategyProfile<Gambit::Rational> &p_profile)
 {
   p_stream << p_label;
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     if (g_useFloat) {
       p_stream.setf(std::ios::fixed);
       p_stream << "," << std::setprecision(g_numDecimals) << ((double) p_profile[i]);
@@ -499,13 +501,13 @@ void PrintProfile(std::ostream &p_stream,
 bool ReadProfile(std::istream &p_stream,
 		 Gambit::MixedStrategyProfile<Gambit::Rational> &p_profile)
 {
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     if (p_stream.eof() || p_stream.bad()) {
       return false;
     }
 
     p_stream >> p_profile[i];
-    if (i < p_profile.Length()) {
+    if (i < p_profile.MixedProfileLength()) {
       char comma;
       p_stream >> comma;
     }
@@ -539,7 +541,7 @@ void nfgSimpdiv::Solve(const Gambit::Game &p_nfg,
   }
   bestz = 1.0e30;          // ditto
 
-  Gambit::Integer k = find_lcd(p_start);
+  Gambit::Integer k = find_lcd((const Gambit::Vector<Gambit::Rational> &) p_start);
   d = Gambit::Rational(1, k);
     
   Gambit::MixedStrategyProfile<Gambit::Rational> y(p_start);
@@ -585,7 +587,7 @@ void Randomize(Gambit::MixedStrategyProfile<Gambit::Rational> &p_profile, int p_
 void PrintBanner(std::ostream &p_stream)
 {
   p_stream << "Compute Nash equilibria using simplicial subdivision\n";
-  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2010, The Gambit Project\n";
+  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2013, The Gambit Project\n";
   p_stream << "This is free software, distributed under the GNU GPL\n\n";
 }
 
@@ -593,20 +595,21 @@ void PrintBanner(std::ostream &p_stream)
 void PrintHelp(char *progname)
 {
   PrintBanner(std::cerr);
-  std::cerr << "Usage: " << progname << " [OPTIONS]\n";
-  std::cerr << "Accepts game on standard input.\n";
+  std::cerr << "Usage: " << progname << " [OPTIONS] [file]\n";
+  std::cerr << "If file is not specified, attempts to read game from standard input.\n";
   std::cerr << "With no options, computes one approximate Nash equilibrium.\n\n";
 
   std::cerr << "Options:\n";
   std::cerr << "  -d DECIMALS      show equilibria as floating point, with DECIMALS digits\n";
   std::cerr << "                   (default is to show as rational numbers)\n";
   std::cerr << "  -g MULT          granularity of grid refinement at each step (default is 2)\n";
-  std::cerr << "  -h               print this help message\n";
+  std::cerr << "  -h, --help       print this help message\n";
   std::cerr << "  -r DENOM         generate random starting points with denominator DENOM\n";
   std::cerr << "  -n COUNT         number of starting points to generate (requires -r)\n";
   std::cerr << "  -s FILE          file containing starting points\n";
   std::cerr << "  -q               quiet mode (suppresses banner)\n";
-  std::cerr << "  -v               verbose mode (shows intermediate output)\n";
+  std::cerr << "  -V, --verbose    verbose mode (shows intermediate output)\n";
+  std::cerr << "  -v, --version    print version information\n";
   std::cerr << "                   (default is to only show equilibria)\n";
   exit(1);
 }
@@ -619,9 +622,18 @@ int main(int argc, char *argv[])
   int randDenom = 1, stopAfter = 1;
   bool quiet = false;
 
+  int long_opt_index = 0;
+  struct option long_options[] = {
+    { "help", 0, NULL, 'h'   },
+    { "version", 0, NULL, 'v'  },
+    { "verbose", 0, NULL, 'V'  },
+    { 0,    0,    0,    0   }
+  };
   int c;
-  while ((c = getopt(argc, argv, "g:hvn:r:s:d:qS")) != -1) {
+  while ((c = getopt_long(argc, argv, "g:hVvn:r:s:d:qS", long_options, &long_opt_index)) != -1) {
     switch (c) {
+    case 'v':
+      PrintBanner(std::cerr); exit(1);
     case 'd':
       g_numDecimals = atoi(optarg);
       g_useFloat = true;
@@ -645,7 +657,7 @@ int main(int argc, char *argv[])
     case 'q':
       quiet = true;
       break;
-    case 'v':
+    case 'V':
       g_verbose = true;
       break;
     case 'S':
@@ -667,16 +679,27 @@ int main(int argc, char *argv[])
     PrintBanner(std::cerr);
   }
 
-  try {
-    Gambit::Game game = Gambit::ReadGame(std::cin);
+  std::istream* input_stream = &std::cin;
+  std::ifstream file_stream;
+  if (optind < argc) {
+    file_stream.open(argv[optind]);
+    if (!file_stream.is_open()) {
+      std::ostringstream error_message;
+      error_message << argv[0] << ": " << argv[optind];
+      perror(error_message.str().c_str());
+      exit(1);
+    }
+    input_stream = &file_stream;
+  }
 
-    game->BuildComputedValues();
+  try {
+    Gambit::Game game = Gambit::ReadGame(*input_stream);
 
     if (startFile != "") {
       std::ifstream startPoints(startFile.c_str());
       
       while (!startPoints.eof() && !startPoints.bad()) {
-	Gambit::MixedStrategyProfile<Gambit::Rational> start(game);
+	Gambit::MixedStrategyProfile<Gambit::Rational> start(game->NewMixedStrategyProfile(Gambit::Rational(0)));
 	if (ReadProfile(startPoints, start)) {
 	  nfgSimpdiv algorithm;
 	  algorithm.Solve(game, start);
@@ -685,7 +708,7 @@ int main(int argc, char *argv[])
     }
     else if (useRandom) {
       for (int i = 1; i <= stopAfter; i++) {
-	Gambit::MixedStrategyProfile<Gambit::Rational> start(game);
+	Gambit::MixedStrategyProfile<Gambit::Rational> start(game->NewMixedStrategyProfile(Gambit::Rational(0)));
 	Randomize(start, randDenom);
 	
 	nfgSimpdiv algorithm;
@@ -693,7 +716,7 @@ int main(int argc, char *argv[])
       }
     }
     else {
-      Gambit::MixedStrategyProfile<Gambit::Rational> start(game);
+      Gambit::MixedStrategyProfile<Gambit::Rational> start(game->NewMixedStrategyProfile(Gambit::Rational(0)));
   
       for (int pl = 1; pl <= game->NumPlayers(); pl++) {
 	start[start.GetSupport().GetStrategy(pl, 1)] = Gambit::Rational(1);
@@ -708,8 +731,9 @@ int main(int argc, char *argv[])
    
     return 0;
   }
-  catch (Gambit::InvalidFileException) {
+  catch (Gambit::InvalidFileException e) {
     std::cerr << "Error: Game not in a recognized format.\n";
+    if (g_verbose) std::cerr<<e.what()<<endl;
     return 1;
   }
   catch (...) {

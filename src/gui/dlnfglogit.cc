@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/dlnfglogit.cc
 // Dialog for monitoring progress of logit equilibrium computation
@@ -73,13 +73,13 @@ public:
   
 void LogitMixedBranch::AddProfile(const wxString &p_text)
 {
-  MixedStrategyProfile<double> profile(m_doc->GetGame());
+  MixedStrategyProfile<double> profile(m_doc->GetGame()->NewMixedStrategyProfile(0.0));
 
   wxStringTokenizer tok(p_text, wxT(","));
 
   m_lambdas.Append((double) lexical_cast<Rational>(std::string((const char *) tok.GetNextToken().mb_str())));
 
-  for (int i = 1; i <= profile.Length(); i++) {
+  for (int i = 1; i <= profile.MixedProfileLength(); i++) {
     profile[i] = lexical_cast<Rational>(std::string((const char *) tok.GetNextToken().mb_str()));
   }
 
@@ -656,24 +656,43 @@ LogitMixedDialog::LogitMixedDialog(wxWindow *p_parent,
   m_toolBar->SetMargins(4, 4);
   m_toolBar->SetToolBitmapSize(wxSize(24, 24));
 
-  m_toolBar->AddTool(wxID_SAVE, wxBitmap(savedata_xpm), wxNullBitmap, false,
-		     -1, -1, 0,
-		     _("Save the correspondence to a CSV file"),
-		     _("Save the correspondence to a CSV file"));
+  m_toolBar->AddTool(wxID_SAVE,
+                     wxEmptyString,
+                     wxBitmap(savedata_xpm),
+                     wxNullBitmap,
+                     wxITEM_NORMAL,
+		                 _("Save the correspondence to a CSV file"),
+		                 _("Save the correspondence to a CSV file"));
+
   m_toolBar->EnableTool(wxID_SAVE, false);
-  m_toolBar->AddTool(GBT_MENU_VIEW_DATA, wxBitmap(datasrc_xpm),
-		     wxNullBitmap, false, -1, -1, 0,
-		     _("View the points in the correspondence"),
-		     _("View the points in the correspondence"));
+
+  m_toolBar->AddTool(GBT_MENU_VIEW_DATA,
+                     wxEmptyString,
+                     wxBitmap(datasrc_xpm),
+                     wxNullBitmap,
+                     wxITEM_NORMAL,
+		                 _("View the points in the correspondence"),
+		                 _("View the points in the correspondence"));
+
   m_toolBar->EnableTool(GBT_MENU_VIEW_DATA, false);
 
-  m_toolBar->AddTool(wxID_PRINT, wxBitmap(print_xpm), wxNullBitmap, false,
-		     -1, -1, 0, _("Print the graph"), _("Print the graph"));
+  m_toolBar->AddTool(wxID_PRINT,
+                     wxEmptyString,
+                     wxBitmap(print_xpm),
+                     wxNullBitmap,
+                     wxITEM_NORMAL,
+                     _("Print the graph"),
+                     _("Print the graph"));
 
   m_toolBar->AddSeparator();
-  m_toolBar->AddTool(GBT_MENU_VIEW_ZOOMFIT, wxBitmap(zoomfit_xpm),
-		     wxNullBitmap, false, -1, -1, 0,
-		     _("Show the whole graph"), _("Show the whole graph"));
+
+  m_toolBar->AddTool(GBT_MENU_VIEW_ZOOMFIT,
+                     wxEmptyString,
+                     wxBitmap(zoomfit_xpm),
+                     wxNullBitmap,
+                     wxITEM_NORMAL,
+                     _("Show the whole graph"),
+                     _("Show the whole graph"));
 
   m_toolBar->AddControl(new wxStaticText(m_toolBar, wxID_STATIC,
 					 wxT("Graph scaling:")));
@@ -726,7 +745,7 @@ void LogitMixedDialog::Start(void)
 #endif // __WXMAC__
   
   std::ostringstream s;
-  m_doc->GetGame()->WriteNfgFile(s);
+  m_doc->GetGame()->Write(s, "nfg");
   wxString str(wxString(s.str().c_str(), *wxConvCurrent));
   
   // It is possible that the whole string won't write on one go, so

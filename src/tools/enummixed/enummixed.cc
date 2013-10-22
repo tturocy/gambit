@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enummixed/enummixed.cc
 // Compute Nash equilibria via Mangasarian's algorithm
@@ -20,9 +20,12 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
+#include <cstdlib>
 #include <unistd.h>
-#include <stdlib.h>
+#include <getopt.h>
 #include <iostream>
+#include <fstream>
+#include <cerrno>
 #include <iomanip>
 
 #include "libgambit/libgambit.h"
@@ -53,7 +56,7 @@ void PrintProfile(std::ostream &p_stream,
 		  const MixedStrategyProfile<double> &p_profile)
 {
   p_stream << p_label;
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     p_stream.setf(std::ios::fixed);
     p_stream << ',' << std::setprecision(g_numDecimals) << p_profile[i];
   }
@@ -66,7 +69,7 @@ void PrintProfile(std::ostream &p_stream,
 		  const MixedStrategyProfile<Rational> &p_profile)
 {
   p_stream << p_label;
-  for (int i = 1; i <= p_profile.Length(); i++) {
+  for (int i = 1; i <= p_profile.MixedProfileLength(); i++) {
     p_stream << ',' << p_profile[i];
   }
 
@@ -116,7 +119,7 @@ template <class T> void GetCliques(std::ostream &p_stream,
   for (int cl = 1; cl <= cliques1.Length(); cl++) {
     for (int i = 1; i <= cliques1[cl].Length(); i++) {
       for (int j = 1; j <= cliques2[cl].Length(); j++) {
-	MixedStrategyProfile<T> profile(p_support);
+	MixedStrategyProfile<T> profile(p_support.NewMixedStrategyProfile<T>());
 
 	for (int k = 1; k <= p_key1[cliques1[cl][i]].Length(); k++) {
 	  profile[k] = p_key1[cliques1[cl][i]][k];
@@ -138,7 +141,7 @@ template <class T> void Solve(const StrategySupport &p_support)
   List<Vector<T> > key1, key2;  
   List<int> node1, node2;   // IDs of each component of the extreme equilibria
 
-  PureStrategyProfile profile(p_support.GetGame());
+  PureStrategyProfile profile = p_support.GetGame()->NewPureStrategyProfile();
 
   Rational min = p_support.GetGame()->GetMinPayoff();
   if (min > Rational(0)) {
@@ -160,11 +163,11 @@ template <class T> void Solve(const StrategySupport &p_support)
 	       1, p_support.NumStrategies(1));
 
   for (int i = 1; i <= p_support.NumStrategies(1); i++) {
-    profile.SetStrategy(p_support.GetStrategy(1, i));
+    profile->SetStrategy(p_support.GetStrategy(1, i));
     for (int j = 1; j <= p_support.NumStrategies(2); j++) {
-      profile.SetStrategy(p_support.GetStrategy(2, j));
-      A1(i, j) = fac * (profile.GetPayoff<Rational>(1) - min);
-      A2(j, i) = fac * (profile.GetPayoff<Rational>(2) - min);
+      profile->SetStrategy(p_support.GetStrategy(2, j));
+      A1(i, j) = fac * (profile->GetPayoff(1) - min);
+      A2(j, i) = fac * (profile->GetPayoff(2) - min);
     }
   }
 
@@ -214,7 +217,7 @@ template <class T> void Solve(const StrategySupport &p_support)
 	}
 
 	if (nash) {
-	  MixedStrategyProfile<T> profile(p_support);
+	  MixedStrategyProfile<T> profile(p_support.NewMixedStrategyProfile<T>());
 	  T sum = (T) 0;
 	  for (int k = 1; k <= p_support.NumStrategies(1); k++) {
 	    profile[p_support.GetStrategy(1, k)] = (T) 0;
@@ -292,7 +295,7 @@ extern void LrsSolve(const StrategySupport &);
 void PrintBanner(std::ostream &p_stream)
 {
   p_stream << "Compute Nash equilibria by enumerating extreme points\n";
-  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2010, The Gambit Project\n";
+  p_stream << "Gambit version " VERSION ", Copyright (C) 1994-2013, The Gambit Project\n";
   p_stream << "Enumeration code based on lrslib 4.2b,\n";
   p_stream << "Copyright (C) 1995-2005 by David Avis (avis@cs.mcgill.ca)\n";
   p_stream << "This is free software, distributed under the GNU GPL\n\n";
@@ -301,8 +304,8 @@ void PrintBanner(std::ostream &p_stream)
 void PrintHelp(char *progname)
 {
   PrintBanner(std::cerr);
-  std::cerr << "Usage: " << progname << " [OPTIONS]\n";
-  std::cerr << "Accepts game on standard input.\n";
+  std::cerr << "Usage: " << progname << " [OPTIONS] [file]\n";
+  std::cerr << "If file is not specified, attempts to read game from standard input.\n";
   std::cerr << "With no options, reports all Nash equilibria found.\n\n";
 
   std::cerr << "Options:\n";
@@ -311,8 +314,9 @@ void PrintHelp(char *progname)
   std::cerr << "  -D               don't eliminate dominated strategies first\n";
   std::cerr << "  -L               use lrslib for enumeration (experimental!)\n";
   std::cerr << "  -c               output connectedness information\n";
-  std::cerr << "  -h               print this help message\n";
+  std::cerr << "  -h, --help       print this help message\n";
   std::cerr << "  -q               quiet mode (suppresses banner)\n";
+  std::cerr << "  -v, --version    print version information\n";
   exit(1);
 }
 
@@ -321,8 +325,16 @@ int main(int argc, char *argv[])
   int c;
   bool useFloat = false, uselrs = false, quiet = false, eliminate = true;
 
-  while ((c = getopt(argc, argv, "d:DhqcS")) != -1) {
+  int long_opt_index = 0;
+  struct option long_options[] = {
+    { "help", 0, NULL, 'h'   },
+    { "version", 0, NULL, 'v'  },
+    { 0,    0,    0,    0   }
+  };
+  while ((c = getopt_long(argc, argv, "d:DvhqcS", long_options, &long_opt_index)) != -1) {
     switch (c) {
+    case 'v':
+      PrintBanner(std::cerr); exit(1);
     case 'd':
       useFloat = true;
       g_numDecimals = atoi(optarg);
@@ -361,15 +373,26 @@ int main(int argc, char *argv[])
     PrintBanner(std::cerr);
   }
 
+  std::istream* input_stream = &std::cin;
+  std::ifstream file_stream;
+  if (optind < argc) {
+    file_stream.open(argv[optind]);
+    if (!file_stream.is_open()) {
+      std::ostringstream error_message;
+      error_message << argv[0] << ": " << argv[optind];
+      perror(error_message.str().c_str());
+      exit(1);
+    }
+    input_stream = &file_stream;
+  }
+
   try {
-    Game game = ReadGame(std::cin);
+    Game game = ReadGame(*input_stream);
 
     if (game->NumPlayers() != 2) {
       std::cerr << "Error: Game does not have two players.\n";
       return 1;
     }
-
-    game->BuildComputedValues();
 
     StrategySupport support(game);
     if (eliminate) {

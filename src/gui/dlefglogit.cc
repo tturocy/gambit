@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/dlefglogit.cc
 // Dialog for monitoring progress of logit equilibrium computation
@@ -268,7 +268,7 @@ void gbtLogitBehavDialog::Start(void)
 #endif // __WXMAC__
   
   std::ostringstream s;
-  m_doc->GetGame()->WriteEfgFile(s);
+  m_doc->GetGame()->Write(s, "efg");
   wxString str(wxString(s.str().c_str(), *wxConvCurrent));
   
   // It is possible that the whole string won't write on one go, so

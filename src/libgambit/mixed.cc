@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/libgambit/mixed.cc
 // Instantiation of template classes used in normal forms
@@ -22,6 +22,21 @@
 
 #include "libgambit.h"
 #include "mixed.imp"
+
+template class Gambit::MixedStrategyProfileRep<double>;
+template class Gambit::MixedStrategyProfileRep<Gambit::Rational>;
+
+template class Gambit::TableMixedStrategyProfileRep<double>;
+template class Gambit::TableMixedStrategyProfileRep<Gambit::Rational>;
+
+template class Gambit::TreeMixedStrategyProfileRep<double>;
+template class Gambit::TreeMixedStrategyProfileRep<Gambit::Rational>;
+
+template class Gambit::AggMixedStrategyProfileRep<double>;
+template class Gambit::AggMixedStrategyProfileRep<Gambit::Rational>;
+
+template class Gambit::BagentMixedStrategyProfileRep<double>;
+template class Gambit::BagentMixedStrategyProfileRep<Gambit::Rational>;
 
 template class Gambit::MixedStrategyProfile<double>;
 template class Gambit::MixedStrategyProfile<Gambit::Rational>;

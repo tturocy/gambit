@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/tools/enumpoly/complex.cc
 // Implementation of a complex number class
@@ -20,16 +20,11 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
-#if defined(__GNUG__) && !defined(__APPLE_CC__)
-#pragma implementation
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-#include <assert.h>
-#include <ctype.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cfloat>
+#include <cctype>
 
 #include "libgambit/libgambit.h"
 #include "complex.h"
@@ -116,7 +111,9 @@ void gComplex::operator *= (const gComplex& y)
 
 void gComplex::operator /= (const gComplex& y) 
 {
-  if (y == (gComplex)0) error("Attempt to divide by 0.");
+  if (y == (gComplex) 0)  {
+    throw Gambit::ZeroDivideException();
+  }
   *this = gComplex((re*y.re + im*y.im)/(y.re*y.re + y.im*y.im),
 		   (- re*y.im + im*y.re)/(y.re*y.re + y.im*y.im));
 }
@@ -138,7 +135,9 @@ gComplex gComplex::operator * (const gComplex& y) const
 
 gComplex gComplex::operator / (const gComplex& y) const
 {
-  if (y == (gComplex)0) error("Attempt to divide by 0.");
+  if (y == (gComplex)0)  {
+    throw Gambit::ZeroDivideException();
+  }
   return gComplex((re*y.re + im*y.im)/(y.re*y.re + y.im*y.im),
 		  (- re*y.im + im*y.re)/(y.re*y.re + y.im*y.im));
 }
@@ -146,16 +145,6 @@ gComplex gComplex::operator / (const gComplex& y) const
 gComplex gComplex::operator - () const
 {
   return gComplex(-re,-im);
-}
-
-//--------------------------------------------------------------------------
-//                                  errors
-//--------------------------------------------------------------------------
-
-void gComplex::error(const char* msg) const
-{
-  //  gerr << "gComplex class error: " << msg << '\n';
-  assert(0);
 }
 
 // FUNCTIONS OUTSIDE THE CLASS
@@ -173,7 +162,9 @@ gComplex sqr(const gComplex& x)
 gComplex pow(const gComplex& x, const long y)
 {
   if (y < 0) { 
-    assert (x != (gComplex)0);
+    if (x == (gComplex) 0) {
+      throw Gambit::AssertionException("Raising 0^0.");
+    }
     gComplex x1((gComplex)1/x); 
     return pow(x1,-y);
   } 

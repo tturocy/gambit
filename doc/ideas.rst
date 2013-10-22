@@ -7,201 +7,199 @@ research.  There are a number of opportunities for programmers of all
 skill levels and backgrounds to contribute to improving and extending
 Gambit.
 
-A number of such ideas are outlined in this section.  They are grouped
-by the areas of focus:
-
-* :ref:`Interfaces (graphical and API) <contribute-interfaces>`
-* :ref:`Testing and performance comparison <contribute-testing>`
-* :ref:`Implementation of algorithms <contribute-algorithms>`
-
-Each project includes a recommended/preferred
-implementation language, and a summary of the background prerequisites
+A number of such ideas are outlined in this section.
+Each project includes the required implementation environment,
+and a summary of the background prerequisites
 someone should have in order to take on the project successfully, in
 terms of mathematics, game theory, and software engineering.
+
+For beginning contibutors - especially those who are interested
+in potentially applying to work on Gambit projects in future
+Google Summer of Code editions - there are a number of
+`issues in the Gambit issue tracker tagged as "easy"
+<https://github.com/gambitproject/gambit/issues?labels=easy&sort=created&direction=desc&state=open&page=1>`_.
+These are excellent ways to get familiar with the Gambit codebase.
+Contributors who have completed one or more such easy tasks will have
+a significantly greater chance of being considered for possible
+GSoC work.
 
 The `Gambit source tree <http://gambit.git.sourceforge.net/git/gitweb-index.cgi>`_
 is managed using `git <http://www.git-scm.com>`_.  It is recommended to have some familiarity with how git works, or to be willing to learn.  (It's not that hard, and once you do learn it, you'll wonder how you ever lived without it.)
 
+Here is the main system architecture and some terminology, useful for
+understanding how the various projects fit into the greater whole:
+
+* Gambit is a collection of algorithms for manipulating and analysing games.
+* A user-friendly front end is GTE (game theory explorer), run as a
+  web-client in a browser, which provides a GUI to enter games in 
+  extensive and strategic (normal) form.
+* GTE-generated games are stored in a file format (for 
+  extensive and strategic form games), and are processed by 
+  algorithms for finding their Nash equilibria. These algorithms
+  are executed on the web server, which can also be locally installed.
+* Gambit provides also a command-line tool where games can 
+  be defined and the equilibrium-finding algorithms called.
+  This program is invoked in a command shell with standard
+  input or reading text files. These allow for the
+  systematic generation of larger games with parameters.
+
+Interfacing GTE with equilibrium-finding modules
+------------------------------------------------
+
+GTE is implemented in Java on the server and Flash
+(Action Script) on the client side.
+So far, all equilibrium-finding algorithms have been ported
+into Java. These should be replaced by better performing
+original algorithms, such as lrs in C, by invoking them via
+system calls. These should be the same modules that are
+invoked from the Gambit command line.
+
+Improving the GTE graphical interface
+-------------------------------------
+
+There are a number of outstanding issues in the GTE interface,
+including:
+
+* Improved input of games in strategic form
+* Input of games with more than two players
+
+Porting GTE to JavaScript
+-------------------------
+
+The initial implementation of GTE is in Flash.  There is interest in
+porting this implementation to JavaScript for greater portability.
+
+Enhancing the web interface with online storage of games
+--------------------------------------------------------
+
+Web frameworks offer standard functionality of storage of
+user data, including user identification via login. 
+The project is to create such a framework and webpages to retrieve
+typically used games, and store games created by the user. 
+
+Possible extension: Record-keeping and display of results
+for computational experiments.
+If games are generated systematically with various
+parameters, running times and computational results
+should be recorded systematically.
 
 
-.. _contribute-interfaces:
+Refactor and update game representation library
+-----------------------------------------------
 
-Creating interfaces for game representations
---------------------------------------------
+The basic library (in `src/libgambit`) for representing games was
+written in the mid-1990s.  As such, it predates many modern C++
+features (including templates, STL, exceptions, Boost, and so on).
+This project involves carrying out a thorough review of the
+basic library code.  Tasks will/may include:
 
-Implementing GUIs for user-friendly input, editing, and storage of game trees
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+* Replacing the existing reference-counting mechanism with a more
+  flexible approach to referring to elements of games.
+* Implementing the concepts of "strategy support profiles" and
+  "strategy sets" as currently implemented at the Python level.
+* Implementing internal representations using STL, and iterators over
+  objects in STL-compatible ways.
+* Conducting experiments on internal representation structures for
+  performance scalability on larger games.
 
-This is a core project about the manipulation of game trees
-with imperfect information, also called games in extensive
-form.  It should extend the existing prototype
-`<http://gametheoryexplorer.appspot.com/builder/>`_.
+All tasks will involve coordination with the Python API to ensure
+this does not break as changes are made, so a working knowledge of
+Python/Cython is indicated.
 
-* **Languages:** Java and ActionScript (for Flex/Flashplayer)
-* **Prerequisites:** Strong interest in expanding an existing code base for GUIs.
-  Basic game theory.
+* **Languages**: C++; Python/Cython.
+* **Prerequisites**: Introductory game theory for familiarity with
+  terminology of the objects in a game; undergraduate-level software
+  engineering experience.
 
+Integrate Action Graph Games support into main Gambit distribution
+------------------------------------------------------------------
 
-Python API for manipulating games
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Gambit's main API for representing games is written in C++.
-There is a partial, experimental interface written using
-`Cython <http://www.cython.org>`_ to allow games to be defined and manipulated using
-Python.  Build out this interface to completion, and create
-a test suite to exercise the interface, with special
-emphasis on proper handling of error conditions.
+Through the work of Albert Jiang and the research group of
+Prof Kevin Leyton-Brown at University of British Columbia, there
+is an implementation of support for the Action Graph Games
+representation structure.  See
 
-* **Languages:** C++, Python via `Cython <http://www.cython.org>`_
-* **Prerequisites:** Very rudimentary knowledge of game theory (which
-  can be picked up as one goes along); some experience with
-  creating Python extensions, preferably with Cython.
+  Jiang, A. X., Leyton-Brown, K., and Bhat, N. A. R. (2011)
+  Action-graph games. Games and Economic Behavior 71(1): 141-173.
+  http://dx.doi.org/10.1016/j.geb.2010.10.012
 
-GUI for the input and manipulation of game models
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-This new project applies to other models of games, for example games on networks such as congestion games, and Parity games and stochastic games on graphs.
+A preliminary integration of the work has been done in the
+`agg` branch in the Gambit git repository.
 
-* **Languages:** Java and ActionScript (for Flex/Flashplayer),
-  others if experience is there
-* **Prerequisites:** Interest in game theory or logic, senior-level computer
-  science or mathematics.
+This project would involve completing the integration of their
+work for distribution.  The primary tasks will involve code
+refactoring, documentation, and the construction of a test suite.
 
-
-Conversion modules between game representations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
-
-Complex game representations such as game trees have different
-serialization formats in Gambit such as the 
-:ref:`.efg (extensive form game) format <file-formats>`
-and a more recent XML format.  Utilities are to be written that convert one
-format to the other in order to compare existing algorithms.  This can
-be expanded from read-in methods for an internal representation of
-existing algorithms.
-
-* **Languages:** Python and Java
-* **Prerequisites:** Some game theory, junior-level or higher background in
-  computer science (data structures).
-
-**Fuller details:**
-
-In addition to the .efg file format, there is a .xml format
-used by a new interactive program for drawing extensive form
-games.  The program that accesses and generates this format,
-under development as part of the Gambit project, is at
-
-http://gametheoryexplorer.appspot.com/builder/
-
-and a sample file reads::
-
-    <extensiveForm>
-      <node>
-        <node player="1" prob="9/10">
-          <node iset="2" player="2" move="B">
-            <outcome move="N">
-              <payoff player="1" value="3"/>
-              <payoff player="2" value="1"/>
-            </outcome>
-            <outcome move="F">
-              <payoff player="1" value="1"/>
-              <payoff player="2" value="0"/>
-            </outcome>
-          </node>
-          <node iset="4" player="2" move="Q">
-            <outcome move="N">
-              <payoff player="1" value="2"/>
-              <payoff player="2" value="0"/>
-            </outcome>
-            <outcome move="F">
-              <payoff player="1" value="1"/>
-              <payoff player="2" value="0"/>
-            </outcome>
-          </node>
-        </node>
-        <node player="1" prob="1/10">
-          <node iset="2" move="B">
-            <outcome move="N">
-              <payoff player="1" value="2"/>
-              <payoff player="2" value="0"/>
-            </outcome>
-            <outcome move="F">
-              <payoff player="1" value="0"/>
-              <payoff player="2" value="1"/>
-            </outcome>
-          </node>
-          <node iset="4" move="Q">
-            <outcome move="N">
-              <payoff player="1" value="3"/>
-              <payoff player="2" value="1"/>
-            </outcome>
-            <outcome move="F">
-              <payoff player="1" value="1"/>
-              <payoff player="2" value="0"/>
-            </outcome>
-          </node>
-        </node>
-      </node>
-    </extensiveForm>
-
-which generates the game tree shown in this figure.
-
-.. figure:: figures/beerquiche.*
-            :figwidth: 33%
-            :alt: a beer-quiche signaling game
-            :align: right
-            :target: _images/beerquiche.png
-
-The project is about conversion between the  .xml  and .efg
-formats, and should expand the existing read-in routines
-that exist in the programs for the respective formats.  
+* **Languages**: C++; optionally Python/Cython for integration with the
+  Python API.
+* **Prerequisites**: Undergraduate-level software engineering
+  experience; adequate game theory to understand the action graph
+  games representation as described in the 2011 article.
 
 
-.. _contribute-testing:
-
-Creating testbeds for algorithms
---------------------------------
-
-Create a regression-testing framework for Nash equilibrium solvers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-There are a number of different methods for computing Nash
-equilibria in games.  Create a framework for exercising
-algorithms on a set of games, and compare the output and
-performance of the methods.  Some potential complications
-include rounding problems with floating-point numbers, and
-that some methods only promise to return a subset of the
-equilibria.  The framework should accommodate the ability
-both to compare different methods, and to do regression
-testing.
-
-* **Languages:** Open; Python is likely the best option
-* **Prerequisites:** Interest in testing frameworks
-
-
-Creating interfaces to cloud computing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Algorithms with long running times can be tested fast only
-with cloud computing.  Recording the computational
-experiments requires scripting and output data management, 
-and interfacing the cloud computing environment.
-
-* **Languages:** Python
-* **Prerequisites:** Experience with cloud computing desirable.
-
-
-Record-keeping and display of results for computational experiments
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Developing a systematic way of organizing and maintaining the results of computational experiments in a database.  This requires book-keeping of programs together with their versions, and of corresponding possibly randomly generated data.  Creating modules for graphical and tabular representation of results from the database.  There may be existing packages of this sort around that are to be found, configured and adapted.
-
-* **Languages:** Python, SQL in suitable variant, possibly via 
-  `SQLAlchemy <http://www.sqlalchemy.org>`_.
-* **Prerequisites:**  Experience with scripting and data
-  representation desirable.
-
-
-.. _contribute-algorithms:
 
 Implementing algorithms for finding equilibria in games
 -------------------------------------------------------
+
+Each of the following are separate ideas for open projects on
+computing equilibria and other interesting quantities on games.
+Each of these is a single project  For GSoC applications, you should
+select exactly one of these, as each is easily a full summer's worth
+of work (no matter how easy some of them may seem at first read!)
+
+Enumerating all equilibria of a two-player bimatrix game using the EEE algorithm
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The task is to implement the EEE algorithm, which is a published algorithm to
+enumerate all extreme equilibria of a bimatrix game.
+
+* **Languages:** C, Java
+* **Prerequisites:**  Background in game theory, basic linear
+  algebra and linear programming.  Experience with programs of at least
+  medium complexity so that existing code can be expanded.
+
+**Fuller details:**
+
+The task is to implement the EEE algorithm, which is a published algorithm to
+enumerate all extreme equilibria of a bimatrix game.
+
+The most up-to-date version can be found in Sections 7 and 8
+of
+
+    D. Avis, G. Rosenberg, R. Savani, and B. von Stengel (2010),
+    Enumeration of Nash equilibria for two-player games.
+    Economic Theory 42, 9-37. 
+
+    http://www.maths.lse.ac.uk/Personal/stengel/ETissue/ARSvS.pdf
+
+Extra information, including some code,
+is provided in the following report:
+
+    G. Rosenberg (2004),
+    Enumeration of All Extreme Equilibria of Bimatrix Games with Integer Pivoting and Improved Degeneracy Check.
+    CDAM Research Report LSE-CDAM-2004-18.
+
+    http://www.cdam.lse.ac.uk/Reports/Files/cdam-2005-18.pdf
+
+The original algorithm was described in the following paper:
+    
+    C. Audet, P. Hansen, B. Jaumard, and G. Savard (2001),
+    Enumeration of all extreme equilibria of bimatrix games. 
+    SIAM Journal on Scientific Computing 23, 323–338.
+
+The implementation should include a feature to compare the
+algorithm's output (a list of extreme equilibria) with the
+ouput of other algorithms for the same task (e.g.
+``lrsnash``).
+
+In addition a framework that compares running times (and the
+number of recursive calls, calls to pivoting methods, and
+other crucial operations) should be provided.
+The output should record and document the computational
+experiments so that they can be reproduced, in a general
+setup - sufficiently documented - that can be used for
+similar comparisons.
+
 
 Improve integration and testing of Gametracer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -223,87 +221,23 @@ of the algorithms.
 * **Languages:** C++
 * **Prerequisites:** Some level of comfort with linear algebra;
   enjoyment of refactoring code.
- 
-Finding all equilibria reachable by Lemke-Howson
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a two-player in strategic form (also called bimatrix
-games), what are the Nash equilibria that can be found using
-the Lemke-Howson method?  Each pure strategy as an
-"initially dropped label" leads to an equilibrium along a
-computational path obtained by "pivoting" in a linear
-system.  If two equilibria found in that way are different,
-using the second label on the first equilibrium (and vice
-versa) will find yet another equilibrium.  The set of all
-equilibria reachable in that way should be recorded and is a
-(normally) fast way to find many equilibria when the game is
-large.
 
-* **Languages:** Java
-* **Prerequisites:**
-  Theoretical understanding of the Lemke-Howson
-  method or of the Simplex algorithm for Linear Programming.
-  Literature exists that is accessible for students with at
-  least senior-level background in computer science,
-  mathematics or operations research.  An existing
-  implementation of a Lemke-Howson style pivoting algorithm
-  should be adapted with suitable alterations.
+Interface with lrslib
+^^^^^^^^^^^^^^^^^^^^^
 
-**Fuller details:**
+Gambit's :ref:`gambit-enummixed <gambit-enummixed>` tool computes all
+extreme Nash equilibria of a two-player game.  There is another
+package, `lrslib by David Avis
+<http://cgm.cs.mcgill.ca/~avis/C/lrs.html>`_, which implements the
+same algorithm more efficiently and robustly.  There is a partial
+interface with an older version of lrslib in the Gambit source tree,
+which has proven not to be very reliable.  The project is to complete
+the integration and testing of the lrslib integration.
 
-This figure shows the typical situation for a nondegenerate
-two-player game:
+* **Languages:** C/C++
+* **Prerequisites:** Some level of comfort with linear algebra.
 
-.. figure:: figures/lh-net.*
-            :alt: a two-player game
-	    :align: center
-
-There is an "artificial equilibrium" 0 and five equilibria
-1,2,3,4,5, each of which has a *sign* or *index* + or -.
-The Lemke-Howson (LH) algorithm computes a piecewise linear
-path from a known equilibrium, originally only 0, to another
-equilibrium.  There are different ways to start, one for
-each pure strategy of a player which define different LH
-paths.  Here only two ways are shown, in blue and red. 
-An LH path always connects two equilibria of opposite sign,
-so there are an even number of them, minus the artificial
-equilibrium, which gives an odd number overall.  
-Here, the blue and red paths lead to two different
-equilibria 1 and 2 of positive index (+).  Then the
-algorithm can be run backwards on equilibrium 1 where the
-blue path leads back to 0, but the red path must find
-another equilibrium, here 3, of negative index (-).  
-The blue path from equilibrium 2 could possibly find another
-negatively indexed equilibrium like 4, but does not, it also
-finds 3.  So the "network" of LH paths here is not connected
-and only finds equilibria 1,2,3, but not the two equilibria
-4,5 which are only connected among themselves.
-
-Given the LH algorithm, all this is relatively
-straightforward, but there is no implementation for finding
-negatively indexed equilibria and the described "network".
-It would also be useful to study if all equilibria can be
-found for random or typical examples.
-
-The LH algorithm is described in
-
-    B. von Stengel (2007), Equilibrium computation for
-    two-player games in strategic and extensive form. Chapter 3,
-    Algorithmic Game Theory, eds. N. Nisan, T. Roughgarden, E.
-    Tardos, and V. Vazirani, Cambridge Univ. Press, Cambridge,
-    53-78. 
-
-    http://www.maths.lse.ac.uk/Personal/stengel/TEXTE/agt-stengel.pdf
-
-It is related to the simplex algorithm for linear
-programming but with a different *complementary* pivoting
-rule.  It is also numerically not stable because rounding
-errors may violate the rule, so it needs to be implemented
-with *integer pivoting*, also described in the article.
-
-There are versions around in C and Java that implement this
-which are not yet part of the public Gambit code, but will
-be made public once the project starts.
 
 Finding equilibria reachable by Lemke's algorithm with varying "covering vectors"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -314,7 +248,6 @@ called the "covering vector".  That parameter can serve a
 randomly selected starting point of the computation and
 potentially reach many more equilibria.
 
-* **Languages:** Java
 * **Prerequisites:** Theoretical understanding of the Lemke-Howson
   method or of the Simplex algorithm for Linear Programming.
   Literature exists that is accessible for students with at
@@ -331,7 +264,7 @@ the so-called index of an equilibrium component in a
 bimatrix game.  This component is the output to an existing
 enumeration algorithm.
 
-* **Languages:** Java and C
+* **Languages:** C
 * **Prerequisites:**  Senior-level mathematics, interest in game theory
   and some basic topology.
 
@@ -476,9 +409,8 @@ equilibria of a bimatrix game to game trees with imperfect
 information using the so-called "sequence form".  The method
 is described in abstract form but not implemented.  
 
-* **Languages:** Java
 * **Prerequisites:** Background in game theory and basic linear
-  algebra.  Experience with Java programs of at least
+  algebra.  Experience with programs of at least
   medium complexity so that existing code can be expanded.
 
 
@@ -523,81 +455,6 @@ algorithms.
   the Lemke-Howson method for games.  Senior-level
   mathematics, mathematical economics, or operations research.
 
-Representing two-player correlated equilibrium payoffs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a game, the set of correlated equilibria is a convex
-polytope. For a two-player game, the set of its payoffs is
-a two-dimensional polygon.  This is useful information to
-draw as a first picture of which equilibrium payoffs can be expected.
-
-* **Languages:** Python, Java, or C/C++
-* **Prerequisites:** Some knowledge of game theory and linear programming.
-
-**Fuller details:**
-
-Correlated equilibrium (CE) is a generalization of Nash
-equilibrium.  For a definition see
-http://en.wikipedia.org/wiki/Correlated_equilibrium
-
-For any number of players, the set of CE is a polytope. The
-"variables" of this polytope are the probabilities of a
-joint distribution over strategy profiles.  Linear
-inequalities that define this polytope are "incentive
-constraints" that compare any two strategies of a player,
-and are derived from the payoffs of the game.
-Consequently, one can maximize a linear function over this
-polytope by linear programming, for example any linear
-combination of the players' payoffs. 
-
-In a two-player game, the possible *payoffs* for the two
-players in a CE define a polygon.
-(For three players, they define a polytope of dimension
-three, and so on.)
-These payoffs give useful information about the game, for
-example which Nash equilibrium payoffs - which are special
-CE payoffs - can at most be expected.
-What is unknown about the polygon are its *vertices*.
-The following picture shows a polygon with 7 vertices
-numbered 1,2,...,7.  
-
-.. figure:: figures/corr-direc.png
-            :alt:  polygon with vertices
-            :align: center
-
-In this figure, if the horizontal direction is the payoff to
-player 1 and the vertical direction is the payoff to player 2, 
-then vertices 5 and 1 are the CE with maximum (minimum)
-payoff to player 1, vertices 2 and 3 give maximum payoff to
-player 2, and vertex 6 gives minimum payoff to player 2. 
-
-How can one identify the vertices when the only access to
-the polygon is via maximizing linear functions of the two
-coordinates?  By trying out different directions
-intelligently.  Maximizing in direction x gives vertex 2,
-maximizing in direction y gives vertex 3.  If the linear
-function z that is orthogonal to the line that connects 2
-and 3 is maximized at both 2 and 3, then there is no further
-vertex between them.  For comparison, suppose direction w is
-maximized at 5.  Then the line that connects 3 and 5 gives
-a direction (not shown) that is *not* maximized at both 3
-and 5, but instead yields another vertex 4.  This should
-give a quick picture of the possible CE payoffs.
-(Extending this to 3 players is a whole new challenge, and
-would require interfacing with 3D-drawing programs, if this
-is worth pursuing.)
-
-The possible CE payoffs can be used as bounds in the search
-for Nash equilibria in enumeration programs such as those
-described in
-
-    D. Avis, G. Rosenberg, R. Savani, and B. von Stengel (2010),
-    Enumeration of Nash equilibria for two-player games.
-    Economic Theory 42, 9-37. 
-
-    http://www.maths.lse.ac.uk/Personal/stengel/ETissue/ARSvS.pdf
-
-which may be a useful interface (that would have to be
-tested for its usefulness) to equilibrium enumeration.
  
 

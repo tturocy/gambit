@@ -1,6 +1,6 @@
 //
 // This file is part of Gambit
-// Copyright (c) 1994-2010, The Gambit Project (http://www.gambit-project.org)
+// Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 //
 // FILE: src/gui/efglayout.cc
 // Implementation of tree layout representation
@@ -20,7 +20,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 //
 
-#include <math.h>
+#include <cmath>
 #include <algorithm>    // for std::min, std::max
 
 #include <wx/wxprec.h>
@@ -305,7 +305,7 @@ void gbtNodeEntry::DrawOutcome(wxDC &p_dc, bool p_noHints) const
 
     std::string payoff = outcome->GetPayoff<std::string>(pl);
 
-    if (payoff.find('/') != (unsigned int) -1) {
+    if (payoff.find('/') != std::string::npos) {
       p_dc.SetPen(wxPen(m_style->GetPlayerColor(pl), 1, wxSOLID));
       int oldX = point.x;
       point = DrawFraction(p_dc, point, outcome->GetPayoff<Gambit::Rational>(pl));
@@ -494,7 +494,7 @@ wxString gbtTreeLayout::CreateBranchLabel(const gbtNodeEntry *p_entry,
 		      *wxConvCurrent);
     case GBT_BRANCH_LABEL_PROBS:
       if (parent->GetPlayer() && parent->GetPlayer()->IsChance()) {
-	return wxString(parent->GetInfoset()->GetActionProb<std::string>(p_entry->GetChildNumber()).c_str(),
+	return wxString(parent->GetInfoset()->GetActionProb(p_entry->GetChildNumber(), "").c_str(),
 			*wxConvCurrent);
       }
       else if (m_doc->NumProfileLists() == 0) {
@@ -884,7 +884,7 @@ void gbtTreeLayout::GenerateLabels(void)
 
       Gambit::GameNode parent = entry->GetNode()->GetParent();
       if (parent->GetPlayer()->IsChance()) {
-	entry->SetActionProb(parent->GetInfoset()->GetActionProb<double>(entry->GetChildNumber()));
+	entry->SetActionProb(parent->GetInfoset()->GetActionProb(entry->GetChildNumber(), (double) 0));
       }
       else {
 	int profile = m_doc->GetCurrentProfile();
