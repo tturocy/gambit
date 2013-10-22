@@ -155,7 +155,7 @@ void STATAMLETracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
   if (m_mleLambda < 0.0 || logL > m_mleLogLike) {
     m_mleLambda = p_point[p_point.Length()];
     m_mleLogLike = logL;
-    for (int i = 1; i <= m_mleProfile.Length(); i++) {
+    for (int i = 1; i <= m_mleProfile.MixedProfileLength(); i++) {
       m_mleProfile[i] = exp(p_point[i]);
     }
   }
@@ -172,7 +172,7 @@ ST_retcode compute_qre_mle(const Gambit::Game &game, int argc, char *argv[])
     return (ST_retcode) 198;
   }
 
-  Gambit::MixedStrategyProfile<double> start(game);
+  Gambit::MixedStrategyProfile<double> start = game->NewMixedStrategyProfile(0.0);
   Gambit::Array<double> frequencies(game->MixedProfileLength());
   for (int i = 1; i <= frequencies.Length(); i++) {
     try {
@@ -225,7 +225,7 @@ private:
 void STATALambdaTracer::OnStep(const Vector<double> &p_point, bool p_isTerminal)
 {
   m_lambda = p_point[p_point.Length()];
-  for (int i = 1; i <= m_profile.Length(); i++) {
+  for (int i = 1; i <= m_profile.MixedProfileLength(); i++) {
     m_profile[i] = exp(p_point[i]);
   }
 }
@@ -255,7 +255,7 @@ ST_retcode compute_qre_eval(const Gambit::Game &game, int argc, char *argv[])
     return (ST_retcode) 198;
   }
 
-  Gambit::MixedStrategyProfile<double> start(game);
+  Gambit::MixedStrategyProfile<double> start = game->NewMixedStrategyProfile(0.0);
   STATALambdaTracer tracer(start);
   tracer.SetTargetParam(targetLambda);
   tracer.TraceStrategicPath(start, 0.0, maxLambda, 1.0);
@@ -340,7 +340,7 @@ ST_retcode save_game(const Gambit::Game &game, int argc, char *argv[])
 
   try {
     std::ofstream f(argv[2]);
-    game->WriteNfgFile(f);
+    game->Write(f, "nfg");
   }
   catch (...) {
     stata_error("An error occurred in writing the game savefile '%s'.\n", argv[2]);
@@ -410,7 +410,7 @@ ST_retcode get_payoff(const Gambit::Game &game, int argc, char *argv[])
     return (ST_retcode) 198;
   }
 
-  Gambit::PureStrategyProfile profile(game);
+  Gambit::PureStrategyProfile profile = game->NewPureStrategyProfile();
 
   for (int pl = 1; pl <= game->NumPlayers(); pl++) {
     int st;
@@ -429,10 +429,11 @@ ST_retcode get_payoff(const Gambit::Game &game, int argc, char *argv[])
       return (ST_retcode) 198;
     }
 
-    profile.SetStrategy(game->GetPlayer(pl)->GetStrategy(st));
+    profile->SetStrategy(game->GetPlayer(pl)->GetStrategy(st));
   }
 
-  stata_scal_save("_payoff", profile.GetPayoff<double>(game->GetPlayer(pay_pl)));
+  stata_scal_save("_payoff", 
+		  (double) profile->GetPayoff(game->GetPlayer(pay_pl)));
   return (ST_retcode) 0;
 }
 
@@ -461,7 +462,7 @@ ST_retcode set_payoff(const Gambit::Game &game, int argc, char *argv[])
     return (ST_retcode) 198;
   }
 
-  Gambit::PureStrategyProfile profile(game);
+  Gambit::PureStrategyProfile profile = game->NewPureStrategyProfile();
 
   for (int pl = 1; pl <= game->NumPlayers(); pl++) {
     int st;
@@ -480,13 +481,13 @@ ST_retcode set_payoff(const Gambit::Game &game, int argc, char *argv[])
       return (ST_retcode) 198;
     }
 
-    profile.SetStrategy(game->GetPlayer(pl)->GetStrategy(st));
+    profile->SetStrategy(game->GetPlayer(pl)->GetStrategy(st));
   }
 
-  Gambit::GameOutcome outcome = profile.GetOutcome();
+  Gambit::GameOutcome outcome = profile->GetOutcome();
   if (outcome == 0) {
     outcome = game->NewOutcome();
-    profile.SetOutcome(outcome);
+    profile->SetOutcome(outcome);
   }
 
   outcome->SetPayoff(pay_pl, Gambit::Number(argv[3]));

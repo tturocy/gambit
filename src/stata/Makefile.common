@@ -1,6 +1,6 @@
 #
 # This file is part of Gambit
-# Copyright (c) 1994-2010, The Gambit Project (http:#www.gambit-project.org)
+# Copyright (c) 1994-2013, The Gambit Project (http://www.gambit-project.org)
 #
 # FILE: Makefile.common
 # Platform-independent portion of STATA plugin makefile
@@ -29,6 +29,8 @@ libgambit_SOURCES = \
 	../libgambit/matrix.cc \
 	../libgambit/sqmatrix.cc \
 	../libgambit/game.cc \
+	../libgambit/gametable.cc \
+	../libgambit/gametree.cc \
 	../libgambit/behav.cc \
 	../libgambit/behavitr.cc \
 	../libgambit/behavspt.cc \
