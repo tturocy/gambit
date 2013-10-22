@@ -39,6 +39,10 @@ libgambit_SOURCES = \
 	../libgambit/stratspt.cc \
 	../libgambit/subgame.cc \
 	../libgambit/file.cc \
+        ../libgambit/gameagg.cc \
+        ../libgambit/gamebagg.cc \
+        ../libagg/agg.cc \
+        ../libagg/bagg.cc \
 	../tools/logit/nfglogit.cc \
 	../tools/logit/path.cc
 
