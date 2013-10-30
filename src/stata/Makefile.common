@@ -46,7 +46,7 @@ libgambit_SOURCES = \
 	../tools/logit/nfglogit.cc \
 	../tools/logit/path.cc
 
-PLUGIN_SOURCES = stplugin.c gambit.cc
+PLUGIN_SOURCES = stplugin.cc gambit.cc
 
 ALL_SOURCES = ${PLUGIN_SOURCES} ${libgambit_SOURCES}
 ALL_OBJECTS = ${PLUGIN_OBJECTS} ${libgambit_OBJECTS}
