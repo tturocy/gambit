@@ -522,6 +522,10 @@ STDLL stata_call(int argc, char *argv[])
       }
       return load_game(handles, argv[1]);
     }
+    else if (!strcmp(argv[0], "version")) {
+      stata_display("Gambit plugin version " VERSION);
+      return ((ST_retcode) 0);
+    }
     else if (!strcmp(argv[0], "create")) {
       if (argc == 1) {
 	stata_error("create command requires arguments\n");

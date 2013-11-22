@@ -55,5 +55,5 @@ clean:
 	rm -f gambit.plugin
 
 plugin:	${ALL_SOURCES}
-	${CXX} ${CXXFLAGS} ${ALL_SOURCES} -o gambit.plugin
+	${CXX} ${CXXFLAGS} -I../.. ${ALL_SOURCES} -o gambit.plugin
 	
