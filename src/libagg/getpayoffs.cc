@@ -79,9 +79,9 @@ int main(int argc, char **argv) {
   while(readstrat(s, m) ){
     //if(useGambit){
     	p = g->NewMixedStrategyProfile(0);
-    	for (int i=1,offs=0;i<=g->NumPlayers();offs+=p.GetSupport().NumStrategies(i),++i){
-    		for (int j=1;j<=p.GetSupport().NumStrategies(i);++j)
-    			p[p.GetSupport().GetStrategy(i,j)]=s[offs+j-1];
+    	for (int i=1,offs=0;i<=g->NumPlayers();offs+=p.GetSupport()[i].size(),++i){
+	  for (int j=1;j<=p.GetSupport()[i].size();++j)
+	    p[p.GetSupport()[i][j]]=s[offs+j-1];
     	}
     //}
 

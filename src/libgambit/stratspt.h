@@ -77,9 +77,6 @@ public:
   /// Returns the game on which the support is defined.
   Game GetGame(void) const { return m_nfg; }
 
-  /// Returns the number of strategies in the support for player pl.
-  int NumStrategies(int pl) const  { return m_support[pl].Length(); }
-
   /// Returns the number of strategies in the support for all players.
   Array<int> NumStrategies(void) const;
 
@@ -88,17 +85,13 @@ public:
 
   template <class T> MixedStrategyProfile<T> NewMixedStrategyProfile(void) const;
 
-  /// Returns the strategy in the st'th position for player pl.
-  GameStrategy GetStrategy(int pl, int st) const 
-    { return m_support[pl][st]; }
-
-  /// Returns the number of players in the game
-  int NumPlayers(void) const { return m_nfg->NumPlayers(); }
   /// Returns the set of strategies in the support for a player
-  const Array<GameStrategy> &Strategies(const GamePlayer &p_player) const
+  const Array<GameStrategy> &operator[](const GamePlayer &p_player) const
     { return m_support[p_player->GetNumber()]; }
 
-  /// Returns the index of the strategy in the support.
+  /// Returns the set of strategies in the support for a player
+  const Array<GameStrategy> &operator[](int pl) const  { return m_support[pl]; }
+
   int GetIndex(const GameStrategy &s) const
     { return m_support[s->GetPlayer()->GetNumber()].Find(s); }
 

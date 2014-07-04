@@ -150,13 +150,13 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
   t=0;
   for(j=1;j<=y.GetGame()->NumPlayers();j++)
     {
-      for(h=1;h<=y.GetSupport().NumStrategies(j);h++)
+      for(h=1;h<=y.GetSupport()[j].size();h++)
 	{
 	  TT(j,h)=0;
 	  U(j,h)=0;
 	  if(v(j,h)==Gambit::Rational(0))U(j,h)=1;
 	  ab(j,h)=Gambit::Rational(0);
-	  y[y.GetSupport().GetStrategy(j,h)]=v(j,h);
+	  y[y.GetSupport()[j][h]]=v(j,h);
 	}
     }
   
@@ -172,9 +172,9 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
 // case1a:;
   if(TT(j,h)==0 && U(j,h)==0)
     {
-      for(hh=1,tot=0;hh<=y.GetSupport().NumStrategies(j);hh++)
+      for(hh=1,tot=0;hh<=y.GetSupport()[j].size();hh++)
 	if(TT(j,hh)==1 || U(j,hh)==1)tot++;
-      if(tot==y.GetSupport().NumStrategies(j)-1)goto end;
+      if(tot==y.GetSupport()[j].size()-1)goto end;
       else {
 	i=t+1;
 	goto step2;
@@ -191,7 +191,7 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
   else if(U(j,h))
     {
       k=h;
-      while(U(j,k)){k++;if(k>y.GetSupport().NumStrategies(j))k=1;}
+      while(U(j,k)){k++;if(k>y.GetSupport()[j].size())k=1;}
       if(TT(j,k)==0)i=t+1;
       else {
 	i=1;
@@ -219,19 +219,19 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
   j=pi(ii,1);
   h=pi(ii,2);
   k=h;
-  if(i<t+1)k=get_b(j,h,y.GetSupport().NumStrategies(j),U);
-  kk=get_c(j,h,y.GetSupport().NumStrategies(j),U);
+  if(i<t+1)k=get_b(j,h,y.GetSupport()[j].size(),U);
+  kk=get_c(j,h,y.GetSupport()[j].size(),U);
   if(i==1)ii=t+1;
   else if(i==t+1)ii=1;
   else ii=i-1;
   getY(y,v,U,TT,ab,pi,ii);
   
       /* case3a */
-  if(i==1 && (y[y.GetSupport().GetStrategy(j,k)]<=Gambit::Rational(0) || 
-	      (v(j,k)-y[y.GetSupport().GetStrategy(j,k)])>=(Gambit::Rational(m_leashLength))*d)) {
-    for(hh=1,tot=0;hh<=y.GetSupport().NumStrategies(j);hh++)
+  if(i==1 && (y[y.GetSupport()[j][k]]<=Gambit::Rational(0) || 
+	      (v(j,k)-y[y.GetSupport()[j][k]])>=(Gambit::Rational(m_leashLength))*d)) {
+    for(hh=1,tot=0;hh<=y.GetSupport()[j].size();hh++)
       if(TT(j,hh)==1 || U(j,hh)==1)tot++;
-    if(tot==y.GetSupport().NumStrategies(j)-1) {
+    if(tot==y.GetSupport()[j].size()-1) {
       U(j,k)=1;
       goto end;
     }
@@ -244,21 +244,22 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
   }
       /* case3b */
   else if(i>=2 && i<=t &&
-	  (y[y.GetSupport().GetStrategy(j,k)]<=Gambit::Rational(0) || (v(j,k)-y[y.GetSupport().GetStrategy(j,k)])>=(Gambit::Rational(m_leashLength))*d)) {
+	  (y[y.GetSupport()[j][k]]<=Gambit::Rational(0) || 
+	   (v(j,k)-y[y.GetSupport()[j][k]])>=(Gambit::Rational(m_leashLength))*d)) {
     goto step4;
   }
       /* case3c */
   else if(i==t+1 && ab(j,kk)==Gambit::Rational(0)) {
-    if(y[y.GetSupport().GetStrategy(j,h)]<=Gambit::Rational(0) || (v(j,h)-y[y.GetSupport().GetStrategy(j,h)])>=(Gambit::Rational(m_leashLength))*d)goto step4;
+    if(y[y.GetSupport()[j][h]]<=Gambit::Rational(0) || (v(j,h)-y[y.GetSupport()[j][h]])>=(Gambit::Rational(m_leashLength))*d)goto step4;
     else {
       k=0;
       while(ab(j,kk)==Gambit::Rational(0) && k==0) {
 	if(kk==h)k=1;
 	kk++;
-	if(kk>y.GetSupport().NumStrategies(j))kk=1;
+	if(kk>y.GetSupport()[j].size())kk=1;
       }
       kk--;
-      if(kk==0)kk=y.GetSupport().NumStrategies(j);
+      if(kk==0)kk=y.GetSupport()[j].size();
       if(kk==h)goto step4;
       else goto step5;
     }
@@ -269,9 +270,9 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
       else if(i==t+1) {
 	j=pi(t,1);
 	h=pi(t,2);
-	hh=get_b(j,h,y.GetSupport().NumStrategies(j),U);
-	y[y.GetSupport().GetStrategy(j,h)]-=d;
-	y[y.GetSupport().GetStrategy(j,hh)]+=d;
+	hh=get_b(j,h,y.GetSupport()[j].size(),U);
+	y[y.GetSupport()[j][h]]-=d;
+	y[y.GetSupport()[j][hh]]+=d;
       }
       update(pi,labels,ab,U,j,i);
     }
@@ -281,7 +282,7 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
   j=pi(i-1,1);
   h=pi(i-1,2);
   TT(j,h)=0;
-  if(y[y.GetSupport().GetStrategy(j,h)]<=Gambit::Rational(0) || (v(j,h)-y[y.GetSupport().GetStrategy(j,h)])>=(Gambit::Rational(m_leashLength))*d)U(j,h)=1;
+  if(y[y.GetSupport()[j][j]]<=Gambit::Rational(0) || (v(j,h)-y[y.GetSupport()[j][h]])>=(Gambit::Rational(m_leashLength))*d)U(j,h)=1;
   labels.RotateUp(i,t+1);
   pi.RotateUp(i-1,t);
   t--;
@@ -298,25 +299,25 @@ Gambit::Rational nfgSimpdiv::Simplex(Gambit::MixedStrategyProfile<Gambit::Ration
   U(j,k)=0;
   jj=pi(1,1);
   hh=pi(1,2);
-  kk=get_b(jj,hh,y.GetSupport().NumStrategies(jj),U);
-  y[y.GetSupport().GetStrategy(jj,hh)]-=d;
-  y[y.GetSupport().GetStrategy(jj,kk)]+=d;
+  kk=get_b(jj,hh,y.GetSupport()[jj].size(),U);
+  y[y.GetSupport()[jj][hh]]-=d;
+  y[y.GetSupport()[jj][kk]]+=d;
   
-  k=get_c(j,h,y.GetSupport().NumStrategies(j),U);
+     k=get_c(j,h,y.GetSupport()[j].size(),U);
   kk=1;
   while(kk){
     if(k==h)kk=0;
     ab(j,k)=(ab(j,k)-(Gambit::Rational(1)));
     k++;
-    if(k>y.GetSupport().NumStrategies(j))k=1;
+    if(k>y.GetSupport()[j].size())k=1;
   }
   goto step1;
 
  end:;
   maxz=bestz;
   for(i=1;i<=y.GetGame()->NumPlayers();i++)
-    for(j=1;j<=y.GetSupport().NumStrategies(i);j++)
-      y[y.GetSupport().GetStrategy(i,j)]=besty(i,j);
+    for(j=1;j<=y.GetSupport()[i].size();j++)
+      y[y.GetSupport()[i][j]]=besty(i,j);
   return maxz;
 }
 
@@ -378,15 +379,15 @@ void nfgSimpdiv::getY(Gambit::MixedStrategyProfile<Gambit::Rational> &x,
   int j, h, i,hh;
   
   for(j=1;j<=x.GetGame()->NumPlayers();j++)
-    for(h=1;h<=x.GetSupport().NumStrategies(j);h++)
-      x[x.GetSupport().GetStrategy(j,h)]=v(j,h);
+    for(h=1;h<=x.GetSupport()[j].size();h++)
+      x[x.GetSupport()[j][h]]=v(j,h);
   for(j=1;j<=x.GetGame()->NumPlayers();j++)
-    for(h=1;h<=x.GetSupport().NumStrategies(j);h++)
+    for(h=1;h<=x.GetSupport()[j].size();h++)
       if(TT(j,h)==1 || U(j,h)==1) {
-	x[x.GetSupport().GetStrategy(j,h)]+=(d*ab(j,h));
+	x[x.GetSupport()[j][h]]+=(d*ab(j,h));
 	hh=h-1;
-	if(hh==0)hh=x.GetSupport().NumStrategies(j);
-	x[x.GetSupport().GetStrategy(j,hh)]-=(d*ab(j,h));
+	if(hh==0)hh=x.GetSupport()[j].size();
+	x[x.GetSupport()[j][hh]]-=(d*ab(j,h));
       }
   i=2;
   while(i<=k) {
@@ -405,9 +406,9 @@ void nfgSimpdiv::getnexty(Gambit::MixedStrategyProfile<Gambit::Rational> &x,
   //assert(i>=1);
   j=pi(i,1);
   h=pi(i,2);
-  x[x.GetSupport().GetStrategy(j,h)]+=d;
-  hh=get_b(j,h,x.GetSupport().NumStrategies(j),U);
-  x[x.GetSupport().GetStrategy(j,hh)]-=d;
+  x[x.GetSupport()[j][h]]+=d;
+  hh=get_b(j,h,x.GetSupport()[j].size(),U);
+  x[x.GetSupport()[j][hh]]-=d;
 }
 
 int nfgSimpdiv::get_b(int j, int h, int nstrats,
@@ -451,9 +452,9 @@ Gambit::Rational nfgSimpdiv::getlabel(Gambit::MixedStrategyProfile<Gambit::Ratio
     payoff=Gambit::Rational(0);
     maxval=(Gambit::Rational(-1000000));
     jj=0;
-    for(j=1;j<=yy.GetSupport().NumStrategies(i);j++) {
-      pay=yy.GetPayoff(yy.GetSupport().GetStrategy(i,j));
-      payoff+=(yy[yy.GetSupport().GetStrategy(i,j)]*pay);
+    for(j=1;j<=yy.GetSupport()[j].size();j++) {
+      pay=yy.GetPayoff(yy.GetSupport()[i][j]);
+      payoff+=(yy[yy.GetSupport()[i][j]]*pay);
       if(pay>maxval) {
 	maxval=pay;
 	jj=j;
@@ -469,8 +470,8 @@ Gambit::Rational nfgSimpdiv::getlabel(Gambit::MixedStrategyProfile<Gambit::Ratio
   if(maxz<bestz) {
     bestz=maxz;
     for(i=1;i<=yy.GetGame()->NumPlayers();i++)
-      for(j=1;j<=yy.GetSupport().NumStrategies(i);j++)
-	besty(i,j)=yy[yy.GetSupport().GetStrategy(i,j)];
+      for(j=1;j<=yy.GetSupport()[i].size();j++)
+	besty(i,j)=yy[yy.GetSupport()[i][j]];
   }
   return maxz;
 }
@@ -576,11 +577,11 @@ void Randomize(Gambit::MixedStrategyProfile<Gambit::Rational> &p_profile, int p_
       double x = r * (p_denom - sum + 1);
       int y = (int) x;
       // y is now uniform on [0, (p_denom-sum)].
-      p_profile[p_profile.GetSupport().GetStrategy(pl, st)] = Gambit::Rational(y, p_denom);
+      p_profile[p_profile.GetSupport()[pl][st]] = Gambit::Rational(y, p_denom);
       sum += y;
     }
 
-    p_profile[p_profile.GetSupport().GetStrategy(pl, nfg->GetPlayer(pl)->NumStrategies())] = Gambit::Rational(p_denom - sum, p_denom);
+    p_profile[p_profile.GetSupport()[pl][nfg->GetPlayer(pl)->NumStrategies()]] = Gambit::Rational(p_denom - sum, p_denom);
   }
 }
 
@@ -719,9 +720,9 @@ int main(int argc, char *argv[])
       Gambit::MixedStrategyProfile<Gambit::Rational> start(game->NewMixedStrategyProfile(Gambit::Rational(0)));
   
       for (int pl = 1; pl <= game->NumPlayers(); pl++) {
-	start[start.GetSupport().GetStrategy(pl, 1)] = Gambit::Rational(1);
+	start[start.GetSupport()[pl][1]] = Gambit::Rational(1);
 	for (int st = 2; st <= game->GetPlayer(pl)->NumStrategies(); st++) {
-	  start[start.GetSupport().GetStrategy(pl, st)] = Gambit::Rational(0);
+	  start[start.GetSupport()[pl][st]] = Gambit::Rational(0);
 	}
       }
       

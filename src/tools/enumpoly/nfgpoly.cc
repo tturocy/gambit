@@ -134,12 +134,12 @@ int PolEnumModule::SaveSolutions(const Gambit::List<Gambit::Vector<double> > &li
     kk=0;
     for(i=1;i<=NF->NumPlayers();i++) {
       sum=0;
-      for(j=1;j<support.NumStrategies(i);j++) {
-	profile[support.GetStrategy(i,j)] = list[k][j+kk];
-	sum+=profile[support.GetStrategy(i,j)];
+      for (j = 1; j < support[i].size(); j++) {
+	profile[support[i][j]] = list[k][j+kk];
+	sum += profile[support[i][j]];
       }
-      profile[support.GetStrategy(i,j)] = (double)1.0 - sum;
-      kk+=(support.NumStrategies(i)-1);
+      profile[support[i][j]] = 1.0 - sum;
+      kk += support[i].size() -1;
     }
     index = solutions.Append(profile);
   }
@@ -173,10 +173,10 @@ gPoly<double> PolEnumModule::Prob(int p, int strat) const
   Gambit::Vector<int> exps(num_vars);
   int i,j,kk = 0;
   
-  for(i=1;i<p;i++) 
-    kk+=(support.NumStrategies(i)-1);
-
-  if(strat<support.NumStrategies(p)) {
+  for (i = 1; i < p; i++) {
+    kk += support[i].size() - 1;
+  }
+  if (strat < support[p].size()) {
     exps=0;
     exps[strat+kk]=1;
     exp_vect const_exp(&Space,exps);
@@ -185,7 +185,7 @@ gPoly<double> PolEnumModule::Prob(int p, int strat) const
     equation+=new_term;
   }
   else {
-    for(j=1;j<support.NumStrategies(p);j++) {
+    for (j = 1; j < support[p].size(); j++) {
       exps=0;
       exps[j+kk]=1;
       exp_vect exponent(&Space,exps);
@@ -229,10 +229,11 @@ gPolyList<double>   PolEnumModule::IndifferenceEquations()  const
 {
   gPolyList<double> equations(&Space,&Lex);
 
-  for(int pl=1;pl<=NF->NumPlayers();pl++) 
-    for(int j=1;j<support.NumStrategies(pl);j++) 
-      equations+=IndifferenceEquation(pl,j,j+1);
-
+  for (int pl = 1; pl <= NF->NumPlayers(); pl++)  {
+    for (int j = 1; j < support[pl].size(); j++)  {
+      equations += IndifferenceEquation(pl, j, j+1);
+    }
+  }
   return equations;
 }
  
@@ -240,10 +241,11 @@ gPolyList<double> PolEnumModule::LastActionProbPositiveInequalities() const
 {
   gPolyList<double> equations(&Space,&Lex);
 
-  for(int pl=1;pl<=NF->NumPlayers();pl++)
-    if(support.NumStrategies(pl)>2) 
-      equations+=Prob(pl,support.NumStrategies(pl));
-
+  for (int pl = 1; pl <= NF->NumPlayers(); pl++) {
+    if (support[pl].size() > 2) { 
+      equations += Prob(pl, support[pl].size());
+    }
+  }
   return equations;
 }
 
@@ -350,20 +352,19 @@ Gambit::MixedStrategyProfile<double> PolishEquilibrium(const Gambit::StrategySup
 Gambit::Vector<double> 
 PolEnumModule::SolVarsFromMixedProfile(const Gambit::MixedStrategyProfile<double> &sol) const
 {
-  int numvars(0);
+  int numvars = 0, count = 0;
 
-  for (int pl = 1; pl <= NF->NumPlayers(); pl++) 
-    numvars += support.NumStrategies(pl) - 1;
+  for (int pl = 1; pl <= NF->NumPlayers(); pl++) {
+    numvars += support[pl].size() - 1;
+  }
 
   Gambit::Vector<double> answer(numvars);
-  int count(0);
-
-  for (int pl = 1; pl <= NF->NumPlayers(); pl++) 
-    for (int j = 1; j < support.NumStrategies(pl); j++) {
+  for (int pl = 1; pl <= NF->NumPlayers(); pl++) {
+    for (int j = 1; j < support[pl].size(); j++) {
       count ++;
-      answer[count] = (double)sol[support.GetStrategy(pl,j)];
+      answer[count] = sol[support[pl][j]];
     }
-
+  }
   return answer;
 }
 
@@ -412,12 +413,12 @@ PolEnumModule::ReturnPolishedSolution(const Gambit::Vector<double> &root) const
   int kk=0;
   for(int pl=1;pl<=NF->NumPlayers();pl++) {
     double sum=0;
-    for(j=1;j<support.NumStrategies(pl);j++) {
-      profile[support.GetStrategy(pl,j)] = root[j+kk];
-      sum+=profile[support.GetStrategy(pl,j)];
+    for (j = 1; j < support[pl].size(); j++) {
+      profile[support[pl][j]] = root[j+kk];
+      sum += profile[support[pl][j]];
     }
-    profile[support.GetStrategy(pl,j)] = (double)1.0 - sum;
-    kk+=(support.NumStrategies(pl)-1);
+    profile[support[pl][j]] = 1.0 - sum;
+    kk += support[pl].size() - 1;
   }
        
   return profile;

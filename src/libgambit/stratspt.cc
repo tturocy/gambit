@@ -129,8 +129,8 @@ void StrategySupport::WriteNfgFile(std::ostream &p_file) const
   
   for (int i = 1; i <= m_nfg->NumPlayers(); i++)   {
     p_file << "{ ";
-    for (int j = 1; j <= NumStrategies(i); j++)
-      p_file << '"' << EscapeQuotes(GetStrategy(i, j)->GetLabel()) << "\" ";
+    for (int j = 1; j <= (*this)[i].size(); j++)
+      p_file << '"' << EscapeQuotes((*this)[i][j]->GetLabel()) << "\" ";
     p_file << "}\n";
   }
   
@@ -258,10 +258,9 @@ bool StrategySupport::IsDominated(const GameStrategy &s,
     return false;
   }
   else {
-    for (int i = 1; i <= NumStrategies(s->GetPlayer()->GetNumber()); i++) {
-      if (GetStrategy(s->GetPlayer()->GetNumber(), i) != s &&
-	  Dominates(GetStrategy(s->GetPlayer()->GetNumber(), i), s, 
-		    p_strict)) {
+    for (int i = 1; i <= (*this)[s->GetPlayer()].size(); i++) {
+      if ((*this)[s->GetPlayer()][i] != s &&
+	  Dominates((*this)[s->GetPlayer()][i], s, p_strict)) {
 	return true;
       }
     }
@@ -274,7 +273,7 @@ bool StrategySupport::Undominated(StrategySupport &newS, int p_player,
 {
   Array<GameStrategy> set((p_external) ? 
 			  m_nfg->GetPlayer(p_player)->NumStrategies() :
-			  NumStrategies(p_player));
+			  (*this)[p_player].size());
 
   if (p_external) {
     for (int st = 1; st <= set.Length(); st++) {
@@ -283,7 +282,7 @@ bool StrategySupport::Undominated(StrategySupport &newS, int p_player,
   }
   else {
     for (int st = 1; st <= set.Length(); st++) {
-      set[st] = GetStrategy(p_player, st);
+      set[st] = (*this)[p_player][st];
     }
   }
 

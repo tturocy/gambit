@@ -69,7 +69,7 @@ void AllValidSubsupportsRECURSIVE(const Gambit::StrategySupport &s,
   StrategyCursorForSupport c_copy(*c);
 
   do {
-    if (sact->NumStrategies(c_copy.PlayerIndex()) > 1) {
+    if ((*sact)[c_copy.PlayerIndex()].size() > 1) {
       Gambit::GameStrategy str_ptr = c_copy.GetStrategy();
       sact->RemoveStrategy(str_ptr); 
       AllValidSubsupportsRECURSIVE(s,sact,&c_copy,p_list);
@@ -149,7 +149,7 @@ void AllUndominatedSubsupportsRECURSIVE(const Gambit::StrategySupport &s,
     
     do {
       if (sact->Contains(c_copy.GetStrategy()) &&
-	  sact->NumStrategies(c_copy.PlayerIndex()) > 1 ) {
+	  (*sact)[c_copy.PlayerIndex()].size() > 1 ) {
 
 	Gambit::GameStrategy str_ptr = c_copy.GetStrategy();
 	sact->RemoveStrategy(str_ptr); 
@@ -232,7 +232,7 @@ void PossibleNashSubsupportsRECURSIVE(const Gambit::StrategySupport &s,
     do {
       Gambit::GameStrategy str_ptr = c_copy.GetStrategy();
       if (sact->Contains(str_ptr) &&
-	  sact->NumStrategies(str_ptr->GetPlayer()->GetNumber()) > 1 ) {
+	  (*sact)[str_ptr->GetPlayer()].size() > 1 ) {
 	sact->RemoveStrategy(str_ptr); 
 	PossibleNashSubsupportsRECURSIVE(s,sact,&c_copy,p_list);
 	sact->AddStrategy(str_ptr);
@@ -337,7 +337,7 @@ Gambit::List<Gambit::StrategySupport> PossibleNashSubsupports(const Gambit::Stra
 // ---------------------------------------------------
 
 StrategyCursorForSupport::StrategyCursorForSupport(const Gambit::StrategySupport &S)
-  : support(&S), pl(1), strat(1)
+  : support(S), pl(1), strat(1)
 {}
 
 StrategyCursorForSupport::StrategyCursorForSupport(
@@ -378,16 +378,23 @@ StrategyCursorForSupport::operator!=(const StrategyCursorForSupport &rhs) const
 bool
 StrategyCursorForSupport::GoToNext()
 {
-  if (strat != support->NumStrategies(pl))
-    { strat++; return true; }
-  else if (pl != support->GetGame()->NumPlayers())
-    { pl++; strat = 1; return true; }
-  else return false;
+  if (strat != support[pl].size()) {
+    strat++; 
+    return true; 
+  }
+  else if (pl != support.GetGame()->NumPlayers())  {
+    pl++; 
+    strat = 1; 
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 Gambit::GameStrategy StrategyCursorForSupport::GetStrategy() const
 {
-  return support->GetStrategy(pl, strat);
+  return support[pl][strat];
 }
 
 int StrategyCursorForSupport::StrategyIndex() const
@@ -397,7 +404,7 @@ int StrategyCursorForSupport::StrategyIndex() const
 
 Gambit::GamePlayer StrategyCursorForSupport::GetPlayer() const
 {
-  return support->GetGame()->GetPlayer(pl);
+  return support.GetGame()->GetPlayer(pl);
 }
 
 int StrategyCursorForSupport::PlayerIndex() const
@@ -405,13 +412,10 @@ int StrategyCursorForSupport::PlayerIndex() const
   return pl;
 }
 
-bool 
-StrategyCursorForSupport::IsLast() const
+bool StrategyCursorForSupport::IsLast(void) const
 {
-  if (pl == support->GetGame()->NumPlayers())
-    if (strat == support->NumStrategies(pl))
-      return true;
-  return false;
+  return (pl == support.GetGame()->NumPlayers() &&
+	  strat == support[pl].size());
 }
 
 bool 

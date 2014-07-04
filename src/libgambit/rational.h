@@ -45,6 +45,7 @@ public:
   Rational(double);
   Rational(int);
   Rational(long n);
+  Rational(unsigned long n);
   Rational(int n, int d);
   Rational(long n, long d);
   Rational(const Integer& n);

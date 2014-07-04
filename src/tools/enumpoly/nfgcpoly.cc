@@ -42,17 +42,6 @@ int HeuristicPolEnumModule::PolEnum(void)
 {
   gPolyList<double> equations = NashOnSupportEquationsAndInequalities();
 
-  /*
-  // equations for equality of strat j to strat j+1
-  for( i=1;i<=NF.NumPlayers();i++) 
-    for(j=1;j<support.NumStrats(i);j++) 
-      equations+=IndifferenceEquation(i,j,j+1);
-
-  for( i=1;i<=NF.NumPlayers();i++)
-    if(support.NumStrats(i)>2) 
-      equations+=Prob(i,support.NumStrats(i));
-  */
-
   // set up the rectangle of search
   Vector<double> bottoms(num_vars), tops(num_vars);
   bottoms = (double)0;
@@ -78,12 +67,12 @@ int HeuristicPolEnumModule::SaveSolutions(const Gambit::List<Vector<double> > &l
     kk=0;
     for(i=1;i<=NF->NumPlayers();i++) {
       sum=0;
-      for(j=1;j<support.NumStrategies(i);j++) {
-	profile[support.GetStrategy(i,j)] = list[k][j+kk];
-	sum+=profile[support.GetStrategy(i,j)];
+      for (j = 1; j < support[i].size(); j++) {
+	profile[support[i][j]] = list[k][j+kk];
+	sum += profile[support[i][j]];
       }
-      profile[support.GetStrategy(i,j)] = (double)1.0 - sum;
-      kk+=(support.NumStrategies(i)-1);
+      profile[support[i][j]] = 1.0 - sum;
+      kk+= support[i].size() - 1;
     }
     index = solutions.Append(profile);
   }
@@ -118,9 +107,9 @@ gPoly<double> HeuristicPolEnumModule::Prob(int p, int strat) const
   int i,j,kk = 0;
   
   for(i=1;i<p;i++) 
-    kk+=(support.NumStrategies(i)-1);
+    kk += support[i].size() - 1;
 
-  if(strat<support.NumStrategies(p)) {
+  if (strat < support[p].size()) {
     exps=0;
     exps[strat+kk]=1;
     exp_vect const_exp(&Space,exps);
@@ -129,7 +118,7 @@ gPoly<double> HeuristicPolEnumModule::Prob(int p, int strat) const
     equation+=new_term;
   }
   else {
-    for(j=1;j<support.NumStrategies(p);j++) {
+    for (j = 1; j < support[p].size(); j++) {
       exps=0;
       exps[j+kk]=1;
       exp_vect exponent(&Space,exps);
@@ -173,10 +162,11 @@ gPolyList<double>   HeuristicPolEnumModule::IndifferenceEquations()  const
 {
   gPolyList<double> equations(&Space,&Lex);
 
-  for(int pl=1;pl<=NF->NumPlayers();pl++) 
-    for(int j=1;j<support.NumStrategies(pl);j++) 
-      equations+=IndifferenceEquation(pl,j,j+1);
-
+  for (int pl = 1; pl <= NF->NumPlayers(); pl++)  {
+    for (int j = 1; j < support[pl].size(); j++)  {
+      equations += IndifferenceEquation(pl, j, j+1);
+    }
+  }
   return equations;
 }
  
@@ -184,10 +174,11 @@ gPolyList<double> HeuristicPolEnumModule::LastActionProbPositiveInequalities() c
 {
   gPolyList<double> equations(&Space,&Lex);
 
-  for(int pl=1;pl<=NF->NumPlayers();pl++)
-    if(support.NumStrategies(pl)>2) 
-      equations+=Prob(pl,support.NumStrategies(pl));
-
+  for (int pl = 1; pl <= NF->NumPlayers(); pl++) {
+    if (support[pl].size() > 2) {
+      equations += Prob(pl, support[pl].size());
+    }
+  }
   return equations;
 }
 
@@ -293,16 +284,17 @@ HeuristicPolEnumModule::SolVarsFromMixedStrategyProfile(const MixedStrategyProfi
 {
   int numvars(0);
 
-  for (int pl = 1; pl <= NF->NumPlayers(); pl++) 
-    numvars += support.NumStrategies(pl) - 1;
+  for (int pl = 1; pl <= NF->NumPlayers(); pl++) {
+    numvars += support[pl].size() - 1;
+  }
 
   Vector<double> answer(numvars);
   int count(0);
 
   for (int pl = 1; pl <= NF->NumPlayers(); pl++) 
-    for (int j = 1; j < support.NumStrategies(pl); j++) {
-      count ++;
-      answer[count] = (double)sol[support.GetStrategy(pl,j)];
+    for (int j = 1; j < support[pl].size(); j++) {
+      count++;
+      answer[count] = sol[support[pl][j]];
     }
 
   return answer;
@@ -353,12 +345,12 @@ HeuristicPolEnumModule::ReturnPolishedSolution(const Vector<double> &root) const
   int kk=0;
   for(int pl=1;pl<=NF->NumPlayers();pl++) {
     double sum=0;
-    for(j=1;j<support.NumStrategies(pl);j++) {
-      profile[support.GetStrategy(pl,j)] = root[j+kk];
-      sum+=profile[support.GetStrategy(pl,j)];
+    for (j = 1; j < support[pl].size(); j++) {
+      profile[support[pl][j]] = root[j+kk];
+      sum+=profile[support[pl][j]];
     }
-    profile[support.GetStrategy(pl,j)] = (double)1.0 - sum;
-    kk+=(support.NumStrategies(pl)-1);
+    profile[support[pl][j]] = 1.0 - sum;
+    kk += support[pl].size() - 1;
   }
        
   return profile;

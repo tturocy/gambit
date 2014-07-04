@@ -411,6 +411,8 @@ Rational::Rational(const Integer& n, const Integer& d)
 
 Rational::Rational(long n) :num(n), den(&_OneRep) { }
 
+Rational::Rational(unsigned long n) : num(n), den(&_OneRep) { }
+
 Rational::Rational(int n) :num(n), den(&_OneRep) { }
 
 Rational::Rational(long n, long d) 

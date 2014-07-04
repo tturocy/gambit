@@ -79,26 +79,26 @@ double NFLiapFunc::LiapDerivValue(int i1, int j1,
   x = 0.0;
   for (i = 1; i <= _nfg->NumPlayers(); i++)  {
     psum = 0.0;
-    for (j = 1; j <= p.GetSupport().NumStrategies(i); j++)  {
-      psum += p[p.GetSupport().GetStrategy(i,j)];
-      x1 = p.GetPayoff(p.GetSupport().GetStrategy(i, j)) - p.GetPayoff(i);
+    for (j = 1; j <= p.GetSupport()[i].size(); j++)  {
+      psum += p[p.GetSupport()[i][j]];
+      x1 = p.GetPayoff(p.GetSupport()[i][j]) - p.GetPayoff(i);
       if (i1 == i) {
 	if (x1 > 0.0)
-	  x -= x1 * p.GetPayoffDeriv(i, p.GetSupport().GetStrategy(i1, j1));
+	  x -= x1 * p.GetPayoffDeriv(i, p.GetSupport()[i1][j1]);
       }
       else {
 	if (x1> 0.0)
 	  x += x1 * (p.GetPayoffDeriv(i, 
-				      p.GetSupport().GetStrategy(i, j),
-				      p.GetSupport().GetStrategy(i1, j1)) - 
+				      p.GetSupport()[i][j],
+				      p.GetSupport()[i1][j1]) - 
 		     p.GetPayoffDeriv(i,
-				      p.GetSupport().GetStrategy(i1, j1)));
+				      p.GetSupport()[i1][j1]));
       }
     }
     if (i == i1)  x += 100.0 * (psum - 1.0);
   }
-  if (p[p.GetSupport().GetStrategy(i1, j1)] < 0.0) {
-    x += p[p.GetSupport().GetStrategy(i1, j1)];
+  if (p[p.GetSupport()[i1][j1]] < 0.0) {
+    x += p[p.GetSupport()[i1][j1]];
   }
   return 2.0 * x;
 }
@@ -132,7 +132,7 @@ bool NFLiapFunc::Gradient(const Gambit::Vector<double> &v, Gambit::Vector<double
   int i1, j1, ii;
   
   for (i1 = 1, ii = 1; i1 <= _nfg->NumPlayers(); i1++) {
-    for (j1 = 1; j1 <= _p.GetSupport().NumStrategies(i1); j1++) {
+    for (j1 = 1; j1 <= _p.GetSupport()[i1].size(); j1++) {
       d[ii++] = LiapDerivValue(i1, j1, _p);
     }
   }
@@ -157,14 +157,14 @@ static void PickRandomProfile(Gambit::MixedStrategyProfile<double> &p)
     sum = 0.0;
     int st;
     
-    for (st = 1; st < p.GetSupport().NumStrategies(pl); st++)  {
+    for (st = 1; st < p.GetSupport()[pl].size(); st++)  {
       do
 	tmp = ((double) rand()) / ((double) RAND_MAX);
       while (tmp + sum > 1.0);
-      p[p.GetSupport().GetStrategy(pl, st)] = tmp;
+      p[p.GetSupport()[pl][st]] = tmp;
       sum += tmp;
     }
-    p[p.GetSupport().GetStrategy(pl, st)] = 1.0 - sum;
+    p[p.GetSupport()[pl][st]] = 1.0 - sum;
   }
 }
 

@@ -87,9 +87,11 @@ Gambit::List<Gambit::StrategySupport> PossibleNashSubsupports(const Gambit::Stra
 
 class StrategyCursorForSupport {
 protected:
-  const Gambit::StrategySupport *support;
+  Gambit::StrategySupport support;
   int pl;
   int strat;
+
+  StrategyCursorForSupport &operator =(const StrategyCursorForSupport &);
 
 public:
   //Constructors and dtor
@@ -98,7 +100,6 @@ public:
   ~StrategyCursorForSupport();
 
   // Operators
-  StrategyCursorForSupport &operator =(const StrategyCursorForSupport &);
   bool                    operator==(const StrategyCursorForSupport &) const;
   bool                    operator!=(const StrategyCursorForSupport &) const;
 
